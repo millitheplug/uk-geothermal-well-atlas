@@ -131,29 +131,53 @@ def project_id(admin_token: str, loaded_data: dict) -> str:
     Wells are national reference data with no tenant of their own; attaching
     them to a project is how the tenant claims them. Every data test depends on
     this fixture, and on ``loaded_data`` having run first.
+
+    Keyed on this fixture's own slug rather than on "any project the tenant
+    owns", and the links are reconciled on every call. ``TestProjects`` exercises
+    the project CRUD endpoints against this same tenant, creating projects that
+    hold no wells, and the suite runs in a randomised order - so "the first
+    project found" is frequently one of those. Attaching the wells only when the
+    fixture created the project itself made every well-visibility assertion
+    depend on whether ``TestProjects`` had already run. It cost a green run on
+    CI and a red one on the next push, which is precisely the coupling this
+    suite is configured to catch.
     """
     from app.db.session import SessionLocal
     from app.models.well import Well
     from tests.conftest import DEV_TENANT_ID
 
     with SessionLocal() as session:
-        existing = session.query(Project).filter(Project.tenant_id == DEV_TENANT_ID).first()
-        if existing is not None:
-            return str(existing.id)
-
-        project = Project(
-            tenant_id=DEV_TENANT_ID,
-            name="National Screening",
-            slug="national-screening-test",
-            stage="screening",
-        )
-        session.add(project)
-        session.flush()
-
-        for well in session.query(Well).all():
-            session.add(
-                ProjectWell(project_id=project.id, well_id=well.id, role="candidate")
+        project = (
+            session.query(Project)
+            .filter(
+                Project.tenant_id == DEV_TENANT_ID,
+                Project.slug == "national-screening-test",
             )
+            .first()
+        )
+        if project is None:
+            project = Project(
+                tenant_id=DEV_TENANT_ID,
+                name="National Screening",
+                slug="national-screening-test",
+                stage="screening",
+            )
+            session.add(project)
+            session.flush()
+
+        linked = {
+            row.well_id
+            for row in session.query(ProjectWell).filter(
+                ProjectWell.project_id == project.id
+            )
+        }
+        for well in session.query(Well).all():
+            if well.id not in linked:
+                session.add(
+                    ProjectWell(
+                        project_id=project.id, well_id=well.id, role="candidate"
+                    )
+                )
         session.commit()
         return str(project.id)
 
@@ -1332,20 +1356,40 @@ class TestProjects:
     def test_adding_a_well_makes_it_visible(
         self, client: TestClient, other_tenant_token: str, any_well_id: str
     ):
-        """The whole tenant-isolation model depends on this working."""
+        """The whole tenant-isolation model depends on this working.
+
+        The claim is withdrawn before returning. These tests run in a
+        randomised order alongside ``TestTenantIsolation``, and leaving the
+        shared well claimed by the other organisation turned its expected 404
+        into a 200. The guard under test was fine; the state leaking out of
+        here was not, and a test that quietly narrows what every later test can
+        assert is worse than one that fails on its own.
+        """
+        from app.db.session import SessionLocal
+
         created = client.post(
             "/api/v1/projects",
             headers={"Authorization": f"Bearer {other_tenant_token}"},
             json={"name": "Other Org Project", "well_ids": [any_well_id]},
         )
         assert created.status_code == 201
+        created_project_id = created.json()["id"]
 
-        response = client.get(
-            f"/api/v1/wells/{any_well_id}",
-            headers={"Authorization": f"Bearer {other_tenant_token}"},
-        )
-        assert response.status_code == 200
-        assert response.json()["well_id"] == "UK-MOCK-WLN-002"
+        try:
+            response = client.get(
+                f"/api/v1/wells/{any_well_id}",
+                headers={"Authorization": f"Bearer {other_tenant_token}"},
+            )
+            assert response.status_code == 200
+            assert response.json()["well_id"] == "UK-MOCK-WLN-002"
+        finally:
+            with SessionLocal() as session:
+                # ``project_id`` is a UUID column, so the id from the JSON body
+                # has to be converted before it can be used in a filter.
+                session.query(ProjectWell).filter(
+                    ProjectWell.project_id == uuid.UUID(created_project_id)
+                ).delete(synchronize_session=False)
+                session.commit()
 
 
 class TestDataProvenance:
@@ -1413,8 +1457,13 @@ BEARER: dict[str, str] = {}
 
 @pytest.fixture(autouse=True)
 def _register_tokens(request: pytest.FixtureRequest):
-    """Make the admin token available to the ``self._headers`` helpers."""
-    if "admin_token" in request.fixturenames:
-        token = request.getfixturevalue("admin_token")
-        BEARER["admin"] = token
+    """Make the admin token available to the ``self._headers`` helpers.
+
+    Resolved unconditionally rather than only when a test happens to list
+    ``admin_token`` among its parameters. The ``_headers`` helpers read this
+    module global, and ``TestProjects`` builds its headers the same way while
+    declaring no token fixture at all - so it raised ``KeyError: 'admin'``
+    whenever it shuffled to the front of a randomised run.
+    """
+    BEARER["admin"] = request.getfixturevalue("admin_token")
     yield
