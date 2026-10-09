@@ -466,7 +466,7 @@ class TestPipeline:
         assert result.configuration.startswith("closed_loop")
         assert "abstraction" in " ".join(result.warnings).lower()
 
-    def test_live_well_with_benign_chemistry_can_use_open_loop(self):
+    def test_live_well_with_benign_chemistry_emits_open_loop_viability_note(self):
         result = assess_well(
             _good_well(
                 status="producing",

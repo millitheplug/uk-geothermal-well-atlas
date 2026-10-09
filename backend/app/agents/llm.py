@@ -241,10 +241,10 @@ def _extract_context(user: str) -> dict[str, Any]:
 def _minimal_payload(schema: type[BaseModel]) -> dict[str, Any]:
     """Build a payload satisfying only the required fields of a schema."""
     payload: dict[str, Any] = {}
-    for name, field in schema.model_fields.items():
-        if not field.is_required():
+    for name, model_field in schema.model_fields.items():
+        if not model_field.is_required():
             continue
-        annotation = str(field.annotation)
+        annotation = str(model_field.annotation)
         if "list" in annotation:
             payload[name] = []
         elif "bool" in annotation:
@@ -511,19 +511,6 @@ def _build_integrity_assessment(ctx: dict[str, Any]) -> dict[str, Any]:
         in {"abandoned_no_access", "poor_unknown", "partially_mechanical"},
         "corrosion_risk": corrosion_risk,
         "scaling_risk": scaling_risk,
-        "recommended_next_steps": [
-            _next_step(
-                "Recover the completion and casing record from the operator",
-                "A records request that determines whether any fieldwork is needed.",
-                "critical" if status == "unknown" else "high",
-            ),
-            _next_step(
-                "Commission a wireline casing inspection if the well is accessible",
-                "Documentation cannot establish whether the casing will survive "
-                "thermal cycling.",
-                "high" if status == "unknown" else "medium",
-            ),
-        ],
         "confidence_notes": (
             "Integrity carries a 20% score weight, second only to thermal. It is "
             "the most valuable thing to verify before any capital commitment. "

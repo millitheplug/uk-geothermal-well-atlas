@@ -10,7 +10,10 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from app.agents.agents import FeasibilityAgent
+from app.agents.base import enforce_discipline
 from app.agents.llm import LLMError, MockProvider, get_llm_provider
+from app.agents.orchestrator import AgentOrchestrator, render_report_markdown
 from app.agents.prompts import REQUIRED_REPORT_SECTIONS, system_prompt_for
 from app.agents.schemas import (
     AGENT_NAMES,
@@ -21,8 +24,6 @@ from app.agents.schemas import (
     ReportOutput,
     WellDataInterpretation,
 )
-from app.agents.base import enforce_discipline
-from app.agents.orchestrator import AgentOrchestrator, render_report_markdown
 from app.core.enums import EpistemicStatus, Recommendation
 from app.engineering.pipeline import WellInputs, assess_well
 
@@ -410,6 +411,63 @@ class TestDisciplineGate:
     def test_corrections_are_recorded_in_the_output(self):
         fixed, _ = enforce_discipline("WellDataAgent", self._unsourced_interp())
         assert "Corrected by the discipline gate" in (fixed.confidence_notes or "")
+
+
+class _RogueProvider:
+    """A provider that returns a recommendation the engine did not produce.
+
+    Deliberately hostile. Rule 6 exists so that the model cannot change the
+    recommendation however confidently it asserts one, so the test provider
+    asserts one very confidently.
+    """
+
+    def __init__(self, recommendation: str) -> None:
+        self.recommendation = recommendation
+
+    def complete_model(self, *, system, user, schema, max_tokens=None):
+        output = schema.model_validate(
+            {
+                "summary": "The model disagrees with the deterministic engine.",
+                "overall_assessment": "strong",
+                "recommendation": self.recommendation,
+                "recommendation_reasoning": "The model would like to pursue this well.",
+                "confidence_caveat": "x",
+            }
+        )
+        return output, "rogue mock response"
+
+
+class TestRecommendationIsWiredIntoTheGate:
+    """Rule 6 only holds if the agent hands its expectation to the gate.
+
+    `FeasibilityAgent` once defined `run` twice. Python keeps the last
+    definition, so the one that set `expected_recommendation` was dead code and
+    the rule silently never fired — the agent could have returned any
+    recommendation it liked.
+
+    These drive the agent rather than calling `enforce_discipline` directly,
+    because the gate passing in isolation is precisely what hid the bug.
+    """
+
+    def test_agent_supplies_the_deterministic_recommendation(self):
+        agent = FeasibilityAgent(llm=_RogueProvider(Recommendation.HIGH_PRIORITY.value))
+        run = agent.run({**_context(), "recommendation": Recommendation.DO_NOT_PURSUE.value})
+        assert any(v.rule == "recommendation_must_be_deterministic" for v in run.violations), (
+            run.violations
+        )
+
+    def test_agent_does_not_flag_a_model_that_agrees(self):
+        agent = FeasibilityAgent(llm=_RogueProvider(Recommendation.LOW_PRIORITY.value))
+        run = agent.run({**_context(), "recommendation": Recommendation.LOW_PRIORITY.value})
+        assert not any(v.action == "rejected" for v in run.violations), run.violations
+
+    def test_no_comparison_is_made_when_the_engine_has_no_verdict(self):
+        """An unscored well must not be rejected for disagreeing with nothing."""
+        agent = FeasibilityAgent(llm=_RogueProvider(Recommendation.HIGH_PRIORITY.value))
+        run = agent.run({**_context(), "recommendation": None})
+        assert not any(
+            v.rule == "recommendation_must_be_deterministic" for v in run.violations
+        ), run.violations
 
 
 class TestPrompts:

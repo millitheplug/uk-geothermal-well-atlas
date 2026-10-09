@@ -291,10 +291,6 @@ class FeasibilityAgent(BaseAgent):
             "facts": ctx.get("verified_facts") or [],
         }
 
-    def run(self, ctx: dict[str, Any], *, max_tokens: int | None = None) -> AgentRun:
-        return super().run(ctx, max_tokens=max_tokens)
-
-
 class ReportAgent(BaseAgent):
     name = "ReportAgent"
     schema = ReportOutput
