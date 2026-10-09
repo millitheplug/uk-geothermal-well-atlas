@@ -64,10 +64,25 @@ filterwarnings = ["ignore::DeprecationWarning"]
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+# Alembic revisions are generated schema code. They trip E501 on long column
+# lists and F401 on imports the autogenerator left behind; nobody should be
+# expected to hand-edit revision files to satisfy a linter.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "S"]
+# S101  assert is how the test suite checks things.
+# B008  FastAPI Depends()/Body() call defaults are the framework's idiom.
 ignore = ["S101", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test fixtures authenticate with deliberately fake credentials, and asserting
+# on a token's "bearer" type is the point of the test rather than a leak.
+"tests/**" = ["S105"]
+# Synthetic source adapters generate pseudo-random distributions to stand in
+# for real well and demand data. They are mock-only by design and are never
+# reached in production, so non-cryptographic randomness is correct here.
+"app/data_import/**" = ["S311"]
 
 [tool.mypy]
 python_version = "3.11"

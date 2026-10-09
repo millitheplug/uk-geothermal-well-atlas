@@ -14,22 +14,21 @@ into a report that claims to be about real wells.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Iterator
+from collections.abc import Iterator
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.enums import DataConfidence, EpistemicStatus, WellStatus
+from app.core.enums import DataConfidence, EpistemicStatus
 from app.data_import.adapters import dev_wells
 from app.data_import.base import Adapter, SourceDescriptor
 from app.data_normalisation.normalise import (
     confidence_from_variability,
     normalise_integrity_status,
-    normalise_status,
     normalise_temperature,
     normalise_well_record,
-    touch_timestamp,
 )
 from app.data_validation.validators import RejectedRecord, parse_date, parse_float
 from app.models.evidence import Dataset
@@ -158,7 +157,7 @@ class MockTemperatureAdapter(Adapter):
 
                 measured_at = datetime.combine(
                     parse_date(raw_date, "measured_at"), datetime.min.time(),
-                    tzinfo=timezone.utc,
+                    tzinfo=UTC,
                 )
             except RejectedRecord:
                 measured_at = None

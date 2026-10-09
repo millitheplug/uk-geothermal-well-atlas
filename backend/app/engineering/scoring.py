@@ -17,13 +17,11 @@ without pretending that a data gap is a physical defect.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
 from app.core.enums import (
     DataConfidence,
-    GeothermalConfiguration,
     Recommendation,
     ScoreComponent,
     WellIntegrityStatus,
@@ -591,7 +589,10 @@ def regulatory_score(
         )
     if requires_planning_permission:
         consent_component -= 0.15
-        notes.append("Planning permission is required. 28 days for a permitted development, longer otherwise.")
+        notes.append(
+            "Planning permission is required. 28 days for a permitted "
+            "development, longer otherwise."
+        )
 
     if is_spa:
         consent_component -= 0.20

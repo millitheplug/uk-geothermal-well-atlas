@@ -336,7 +336,9 @@ def irr(
 
     iterations = 0
     mid = 0.0
-    for iterations in range(1, max_iterations + 1):
+    # `iterations` is not read inside the body but is reported afterwards as
+    # part of the solver diagnostics, so the loop variable has to keep its value.
+    for iterations in range(1, max_iterations + 1):  # noqa: B007
         mid = (low + high) / 2.0
         f_mid = npv_at(mid)
         if abs(f_mid) < tolerance or (high - low) / 2.0 < tolerance:

@@ -247,6 +247,18 @@ _STATUS_ORDER = {
     "FACT": 5,
 }
 
+#: Lower bound each confidence band must reach, tested in the order the bands
+#: are listed where the lookup happens. "unknown" has to be present because the
+#: loop runs over every band name, but its threshold sits above any real
+#: confidence value so that it is never selected and stays the fallback.
+_CONFIDENCE_BANDS: dict[str, float] = {
+    "high": 0.75,
+    "medium": 0.55,
+    "low": 0.35,
+    "very_low": 0.0,
+    "unknown": 1.01,
+}
+
 
 def _status_rank(status: str) -> int:
     return _STATUS_ORDER.get(str(status).upper(), 0)
@@ -354,7 +366,7 @@ def claims_from_output(agent_name: str, output: BaseModel) -> list[ClaimRead]:
                             (
                                 b
                                 for b in ("high", "medium", "low", "very_low", "unknown")
-                                if (fact.confidence or 0) >= {"high": 0.75, "medium": 0.55, "low": 0.35, "very_low": 0.0, "unknown": 1.01}[b]
+                                if (fact.confidence or 0) >= _CONFIDENCE_BANDS[b]
                             ),
                             "unknown",
                         )

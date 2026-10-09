@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import Float, bindparam, case, func, literal
+from sqlalchemy import case, func, literal
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql import ColumnElement
 
@@ -52,7 +52,6 @@ def distance_m(
     when one side is a literal coordinate.
     """
     if spatial_dialect_label(bind) == "postgis":
-        from geoalchemy2 import functions as gaf  # noqa: PLC0415
 
         return func.ST_Distance(
             func.ST_SetSRID(func.ST_MakePoint(lon1, lat1), 4326),

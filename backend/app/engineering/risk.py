@@ -417,7 +417,10 @@ class RiskBuilder:
             evidence = [f"Water chemistry indicates '{self.scaling_tendency}' scaling tendency."]
         elif self.water_salinity_ppt and self.water_salinity_ppt > 100:
             probability = 0.65
-            evidence = [f"Formation water salinity of {self.water_salinity_ppt:.0f} ppt drives carbonate scaling."]
+            evidence = [
+                f"Formation water salinity of {self.water_salinity_ppt:.0f} "
+                "ppt drives carbonate scaling."
+            ]
         elif self.water_salinity_ppt and self.water_salinity_ppt > 35:
             probability = 0.45
             evidence = [f"Formation water salinity of {self.water_salinity_ppt:.0f} ppt."]
@@ -731,7 +734,10 @@ class RiskBuilder:
             probability = min(0.85, probability + 0.25)
             evidence.append("The site lies in or adjacent to a Special Protection Area.")
         if not evidence:
-            evidence.append("No planning constraints have been identified, but none have been formally checked.")
+            evidence.append(
+                "No planning constraints have been identified, but none have "
+                "been formally checked."
+            )
 
         return RiskItem(
             category=RiskCategory.PLANNING.value,
@@ -823,7 +829,11 @@ class RiskBuilder:
             evidence = [f"Total depth of {self.total_depth_m:.0f} m."]
         else:
             probability = 0.25
-            evidence = [f"Total depth of {self.total_depth_m:.0f} m is within routine rig capability." if self.total_depth_m else "Depth is unknown."]
+            evidence = [
+                f"Total depth of {self.total_depth_m:.0f} m is within routine rig capability."
+                if self.total_depth_m
+                else "Depth is unknown."
+            ]
         if self.is_mining_subsidence_area:
             probability = min(0.9, probability + 0.20)
             evidence.append("Legacy mining in the area adds to construction difficulty.")

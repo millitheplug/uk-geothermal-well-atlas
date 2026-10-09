@@ -5,12 +5,11 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
 
-from app.api.deps import DbSession, Pagination, enforce_mock_disclosure, spatial_dialect
-from app.core.enums import WellStatus
-from app.core.security import Caller, CurrentCaller, scoped_well_query
+from app.api.deps import DbSession, Pagination, spatial_dialect
+from app.core.security import CurrentCaller, scoped_well_query
 from app.models.well import Well
 from app.schemas.well import (
     MapFeature,

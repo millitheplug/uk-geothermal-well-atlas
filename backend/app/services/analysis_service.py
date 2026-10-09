@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -25,17 +25,14 @@ from app.agents.orchestrator import AgentOrchestrator, OrchestrationResult
 from app.core.enums import (
     AnalysisStage,
     AnalysisStatus,
-    DataConfidence,
     EpistemicStatus,
-    GeothermalConfiguration,
     ValidationActionPriority,
 )
 from app.core.security import Caller
 from app.engineering.pipeline import PIPELINE_VERSION, WellAssessment, WellInputs, assess_well
 from app.engineering.scoring import WEIGHTS
 from app.models.analysis import Analysis, Risk, Scenario, ValidationAction
-from app.models.evidence import CalculationTrace, Claim, Evidence
-from app.models.geology import Geology
+from app.models.evidence import CalculationTrace, Claim
 from app.models.well import Well
 from app.services import query_service as qs
 
@@ -321,7 +318,7 @@ def run_assessment(
     agent result. All three are returned rather than only the row so callers can
     use the result without a database round trip.
     """
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     tid = tenant_id or (caller.tenant_id if caller else uuid.UUID(int=0))
 
     inputs, context = build_well_inputs(db, well)
@@ -381,7 +378,7 @@ def _persist_assessment(
 ) -> Analysis:
     """Write the analysis, its traces, risks, claims and validation actions."""
     risk = assessment.risk_assessment
-    completed = datetime.now(timezone.utc)
+    completed = datetime.now(UTC)
 
     analysis = Analysis(
         tenant_id=tenant_id,

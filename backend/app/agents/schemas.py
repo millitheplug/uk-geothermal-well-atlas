@@ -16,7 +16,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.core.enums import EpistemicStatus, Recommendation
+from app.core.enums import Recommendation
 
 #: The six labels an agent must choose from for anything it asserts.
 FactType = Literal["FACT", "MEASURED", "DERIVED", "ESTIMATE", "ASSUMPTION", "UNKNOWN"]

@@ -21,11 +21,10 @@ tests almost nothing about the scoring.
 from __future__ import annotations
 
 import random
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from typing import Any
 
 from app.core.enums import (
-    DataConfidence,
     EpistemicStatus,
     WellIntegrityStatus,
 )

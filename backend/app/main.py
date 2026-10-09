@@ -15,8 +15,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.v1 import admin, analyses, auth, dashboard, heat, projects, wells
 from app.core.config import settings
-from app.db.session import engine
 from app.db.geo import spatial_dialect_label
+from app.db.session import engine
 
 logging.basicConfig(
     level=logging.DEBUG if settings.debug else logging.INFO,

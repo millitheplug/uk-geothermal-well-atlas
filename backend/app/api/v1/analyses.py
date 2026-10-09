@@ -9,9 +9,8 @@ from fastapi import APIRouter, BackgroundTasks, Body, HTTPException, Query, stat
 from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 
-from app.agents.orchestrator import STAGE_ORDER, render_report_markdown
 from app.api.deps import DbSession, Pagination
-from app.core.enums import AnalysisStatus, GeothermalConfiguration, Recommendation
+from app.core.enums import GeothermalConfiguration, Recommendation
 from app.core.security import Caller, CurrentCaller, scoped_well_query
 from app.engineering.pipeline import WellAssessment, assess_well
 from app.models.analysis import Analysis, Risk, ValidationAction
@@ -23,14 +22,12 @@ from app.schemas.well import (
     CalculationTraceRead,
     ConfidenceRead,
     EngineeringInputs,
-    FeasibilityScoreRead,
     RiskAssessmentRead,
     ScenarioComparison,
     ScenarioDefinition,
     ScenarioResult,
 )
 from app.services import analysis_service as svc
-from app.services import query_service as qs
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
 
@@ -321,7 +318,6 @@ def run_scenarios(
         )
 
     lcohs = [r.lcoh_p_per_kwh for r in results if r.lcoh_p_per_kwh is not None]
-    npvs = [r.npv_gbp for r in results if r.npv_gbp is not None]
 
     notes: list[str] = []
     weighted_lcoh = _weighted_average(

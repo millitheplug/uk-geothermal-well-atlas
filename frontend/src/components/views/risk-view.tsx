@@ -95,7 +95,14 @@ export function RiskView() {
   }, [dashboard.data]);
 
   const selectedAnalysis = selected ? (analyses.data?.[0] ?? null) : null;
-  const risks = selectedAnalysis?.risk?.risks ?? [];
+  // Derived rather than read straight off the analysis: the `?? []` fallback
+  // would otherwise be a fresh array on every render, which keeps the memo
+  // below from ever holding its value. selectedAnalysis is stable while the
+  // cached analysis is unchanged.
+  const risks = React.useMemo(
+    () => selectedAnalysis?.risk?.risks ?? [],
+    [selectedAnalysis],
+  );
 
   const severityCounts = React.useMemo(() => {
     const counts = new Map<string, number>();

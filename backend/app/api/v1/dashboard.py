@@ -5,11 +5,11 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query
 from sqlalchemy import func, select
 
 from app.agents.orchestrator import STAGE_ORDER
-from app.api.deps import DbSession, Pagination, spatial_dialect
+from app.api.deps import DbSession, Pagination
 from app.core.enums import DataConfidence, EpistemicStatus, Recommendation, WellStatus
 from app.core.security import CurrentCaller
 from app.engineering.scoring import WEIGHTS

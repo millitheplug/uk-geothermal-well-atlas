@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import os
 import uuid
-from datetime import date
 
 import pytest
 
@@ -24,7 +23,6 @@ os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app.core.enums import DataConfidence, EpistemicStatus  # noqa: E402
 from app.core.security import create_access_token, hash_password  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models.analysis import Analysis  # noqa: E402
@@ -1331,7 +1329,9 @@ class TestProjects:
         )
         assert response.status_code == 422
 
-    def test_adding_a_well_makes_it_visible(self, client: TestClient, other_tenant_token: str, any_well_id: str):
+    def test_adding_a_well_makes_it_visible(
+        self, client: TestClient, other_tenant_token: str, any_well_id: str
+    ):
         """The whole tenant-isolation model depends on this working."""
         created = client.post(
             "/api/v1/projects",

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from sqlalchemy import func, select
 
 from app.api.deps import DbSession
@@ -15,9 +15,7 @@ from app.core.security import (
     CurrentCaller,
     create_access_token,
     generate_api_key,
-    hash_password,
     record_audit,
-    validate_password_strength,
     verify_password,
 )
 from app.models.user import APIKey, AuditLog, User
@@ -74,7 +72,7 @@ def login(
         resource_id=str(user.id),
         request=request,
     )
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     db.commit()
 
     return TokenResponse(

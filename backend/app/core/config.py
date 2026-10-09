@@ -13,8 +13,9 @@ from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 #: The checked-in development secret. Named so the production guard can
-#: compare against it by identity rather than by re-typing the string.
-_DEVELOPMENT_SECRET_KEY = "dev-only-change-me-in-production-please-32b"
+#: compare against it by identity rather than by re-typing the string. It is a
+#: published constant, not a credential: startup refuses to run with it set.
+_DEVELOPMENT_SECRET_KEY = "dev-only-change-me-in-production-please-32b"  # noqa: S105
 
 
 class Settings(BaseSettings):
@@ -66,7 +67,9 @@ class Settings(BaseSettings):
     object_storage_endpoint: str = "http://localhost:9000"
     object_storage_bucket: str = "ukgeothermal"
     object_storage_access_key: str = "minioadmin"
-    object_storage_secret_key: str = "minioadmin"
+    # MinIO's published local default. Set OBJECT_STORAGE_SECRET_KEY in any
+    # environment that is not a throwaway local stack.
+    object_storage_secret_key: str = "minioadmin"  # noqa: S105
 
     # ---- Domain defaults ------------------------------------------------
     # Default assumption set applied when a user does not override. These are

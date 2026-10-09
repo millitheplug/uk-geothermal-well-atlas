@@ -9,8 +9,6 @@ from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
-from app.core.security import Caller, CurrentCaller, get_caller
 from app.db.geo import spatial_dialect_label
 from app.db.session import get_db
 

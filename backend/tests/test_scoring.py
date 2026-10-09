@@ -6,8 +6,8 @@ import pytest
 
 from app.core.enums import DataConfidence, Recommendation, WellIntegrityStatus
 from app.engineering.scoring import (
-    WEIGHTS,
     SCORE_VERSION,
+    WEIGHTS,
     composite_score,
     demand_score,
     economics_score,

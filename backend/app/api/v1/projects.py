@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from datetime import UTC
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -12,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import DbSession, Pagination
 from app.core.enums import ProjectStage
-from app.core.security import Caller, CurrentCaller, record_audit, scoped_well_query
+from app.core.security import Caller, CurrentCaller, record_audit
 from app.models.analysis import Analysis
 from app.models.project import Project, ProjectWell
 from app.models.well import Well
@@ -203,7 +204,13 @@ def update_stage(
     project_uuid: uuid.UUID,
     db: DbSession,
     caller: CurrentCaller,
-    stage: Annotated[str, Query(pattern="^(sourcing|screening|due_diligence|validation|feed_study|investment_decision|delivery|operating|closed|rejected)$")],
+    stage: Annotated[
+        str,
+        Query(
+            pattern="^(sourcing|screening|due_diligence|validation|feed_study|"
+            "investment_decision|delivery|operating|closed|rejected)$"
+        ),
+    ],
 ) -> dict[str, Any]:
     """Move a project through the pipeline stages."""
     project = _scoped(db, caller, project_uuid)
@@ -234,11 +241,11 @@ def archive_project(
     project_uuid: uuid.UUID, db: DbSession, caller: CurrentCaller
 ) -> None:
     """Archive a project. Analysis results are retained."""
-    from datetime import datetime, timezone  # noqa: PLC0415
+    from datetime import datetime  # noqa: PLC0415
 
     project = _scoped(db, caller, project_uuid)
     project.is_archived = True
-    project.archived_at = datetime.now(timezone.utc)
+    project.archived_at = datetime.now(UTC)
     record_audit(
         db, caller, action="project.archived", resource_type="project",
         resource_id=str(project.id),

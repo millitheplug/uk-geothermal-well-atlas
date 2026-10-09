@@ -22,28 +22,21 @@ from typing import Any
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
-from app.core.security import Caller
 from app.core.enums import (
     DataConfidence,
-    EpistemicStatus,
-    EvidenceReliability,
-    GeothermalConfiguration,
-    OriginalPurpose,
     WellIntegrityStatus,
-    WellStatus,
 )
+from app.core.security import Caller
 from app.db.geo import (
     bounding_box,
-    distance_m,
     distance_to_point_m,
     spatial_dialect_label,
     within_radius,
 )
-from app.models.evidence import Claim, Evidence
 from app.models.analysis import Analysis
+from app.models.evidence import Claim, Evidence
 from app.models.geology import Geology
 from app.models.heat import Building, EnergyPrice, HeatDemand, HeatNetwork
-from app.models.project import Project, ProjectWell
 from app.models.well import Well, WellIntegrity, WellTemperature
 
 
@@ -276,7 +269,6 @@ def _distance_expression(db: Session, lat: float, lon: float):
     """Distance from each building to a point, honouring the dialect."""
     bind = db.get_bind()
     if spatial_dialect_label(bind) == "postgis":
-        from geoalchemy2 import functions as gaf  # noqa: PLC0415
 
         return func.ST_Distance(
             func.ST_SetSRID(func.ST_MakePoint(Building.longitude, Building.latitude), 4326),
@@ -454,7 +446,11 @@ def match_demand_to_well(
     if min_connection_potential:
         stmt = stmt.where(Building.connection_potential == min_connection_potential)
 
-    rows = list(db.execute(stmt.order_by(func.coalesce(Building.annual_heat_demand_kwh, 0).desc()).limit(limit)))
+    rows = list(
+        db.execute(
+            stmt.order_by(func.coalesce(Building.annual_heat_demand_kwh, 0).desc()).limit(limit)
+        )
+    )
 
     # Exact filter in Python. The bounding box is a generous pre-filter; the
     # distance expression is dialect-aware but is only an exact predicate on

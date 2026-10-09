@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.core.enums import DataConfidence, EpistemicStatus
@@ -303,19 +303,19 @@ def recency_axis(
     if measurement_date is None:
         return 0.25, ["No measurement date is recorded; data age cannot be established."]
 
-    ref = reference_date or datetime.now(timezone.utc)
+    ref = reference_date or datetime.now(UTC)
     if isinstance(measurement_date, datetime):
         measured = measurement_date
         if measured.tzinfo is None:
-            measured = measured.replace(tzinfo=timezone.utc)
+            measured = measured.replace(tzinfo=UTC)
     else:
-        measured = datetime.combine(measurement_date, datetime.min.time(), tzinfo=timezone.utc)
+        measured = datetime.combine(measurement_date, datetime.min.time(), tzinfo=UTC)
     if isinstance(ref, datetime):
         ref_dt = ref
         if ref_dt.tzinfo is None:
-            ref_dt = ref_dt.replace(tzinfo=timezone.utc)
+            ref_dt = ref_dt.replace(tzinfo=UTC)
     else:
-        ref_dt = datetime.combine(ref, datetime.min.time(), tzinfo=timezone.utc)
+        ref_dt = datetime.combine(ref, datetime.min.time(), tzinfo=UTC)
 
     age_years = (ref_dt - measured).days / 365.25
     if age_years < 0:
@@ -449,16 +449,41 @@ def assess_confidence(
     )
 
     axes: list[ConfidenceComponent] = [
-        ConfidenceComponent("source_reliability", reliability, CONFIDENCE_WEIGHTS["source_reliability"],
-                            reliability * CONFIDENCE_WEIGHTS["source_reliability"], tuple(reliability_notes)),
-        ConfidenceComponent("data_completeness", completeness, CONFIDENCE_WEIGHTS["data_completeness"],
-                            completeness * CONFIDENCE_WEIGHTS["data_completeness"], tuple(completeness_notes)),
-        ConfidenceComponent("measurement_quality", measurement, CONFIDENCE_WEIGHTS["measurement_quality"],
-                            measurement * CONFIDENCE_WEIGHTS["measurement_quality"], tuple(measurement_notes)),
-        ConfidenceComponent("recency", recency, CONFIDENCE_WEIGHTS["recency"],
-                            recency * CONFIDENCE_WEIGHTS["recency"], tuple(recency_notes)),
-        ConfidenceComponent("cross_source_agreement", agreement, CONFIDENCE_WEIGHTS["cross_source_agreement"],
-                            agreement * CONFIDENCE_WEIGHTS["cross_source_agreement"], tuple(agreement_notes)),
+        ConfidenceComponent(
+            "source_reliability",
+            reliability,
+            CONFIDENCE_WEIGHTS["source_reliability"],
+            reliability * CONFIDENCE_WEIGHTS["source_reliability"],
+            tuple(reliability_notes),
+        ),
+        ConfidenceComponent(
+            "data_completeness",
+            completeness,
+            CONFIDENCE_WEIGHTS["data_completeness"],
+            completeness * CONFIDENCE_WEIGHTS["data_completeness"],
+            tuple(completeness_notes),
+        ),
+        ConfidenceComponent(
+            "measurement_quality",
+            measurement,
+            CONFIDENCE_WEIGHTS["measurement_quality"],
+            measurement * CONFIDENCE_WEIGHTS["measurement_quality"],
+            tuple(measurement_notes),
+        ),
+        ConfidenceComponent(
+            "recency",
+            recency,
+            CONFIDENCE_WEIGHTS["recency"],
+            recency * CONFIDENCE_WEIGHTS["recency"],
+            tuple(recency_notes),
+        ),
+        ConfidenceComponent(
+            "cross_source_agreement",
+            agreement,
+            CONFIDENCE_WEIGHTS["cross_source_agreement"],
+            agreement * CONFIDENCE_WEIGHTS["cross_source_agreement"],
+            tuple(agreement_notes),
+        ),
     ]
 
     score = sum(c.contribution for c in axes)

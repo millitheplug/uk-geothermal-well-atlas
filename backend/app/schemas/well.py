@@ -21,13 +21,8 @@ from app.core.enums import (
     AnalysisStatus,
     DataConfidence,
     EpistemicStatus,
-    GeothermalConfiguration,
-    OriginalPurpose,
-    ProjectStage,
     Recommendation,
-    RiskCategory,
-    WellIntegrityStatus,
-    WellStatus,
+    RiskCategory,  # noqa: F401 -- re-exported; api.v1.dashboard imports it from here.
 )
 
 
@@ -713,9 +708,9 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 -- the OAuth2 scheme name, not a secret
     expires_in: int
-    user: "UserRead"
+    user: UserRead
 
 
 class UserRead(ORMBase):

@@ -18,8 +18,6 @@ handled in :mod:`app.engineering.thermal`.
 
 from __future__ import annotations
 
-import math
-
 from app.core.enums import EpistemicStatus
 from app.engineering.base import (
     CalcResult,
@@ -31,7 +29,10 @@ from app.engineering.base import (
 )
 
 SOURCE_COP_TEMPERATURE = SourceRef(
-    name="IEA Heat Pump Programme / IEA Future of Heat Pumps report, seasonal performance vs source temperature",
+    name=(
+        "IEA Heat Pump Programme / IEA Future of Heat Pumps report, "
+        "seasonal performance vs source temperature"
+    ),
     url="https://www.iea.org/reports/the-future-of-heat-pumps",
     citation="COP declines approximately linearly with lift; SCOP ~3 at 30 degC source, ~5.5 at 50 degC",
 )

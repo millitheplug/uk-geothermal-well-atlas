@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -847,7 +847,9 @@ def _build_regulatory_analysis(ctx: dict[str, Any]) -> dict[str, Any]:
             max((r.get("typical_lead_time_months") or 0) for r in regs) if regs else None
         ),
         "key_obstacles": [
-            r["title"] for r in regs if r.get("is_mandatory") and (r.get("typical_lead_time_months") or 0) > 12
+            r["title"]
+            for r in regs
+            if r.get("is_mandatory") and (r.get("typical_lead_time_months") or 0) > 12
         ],
         "recommendation_notes": (
             "Make early pre-application contact before committing capital. A closed "
@@ -883,7 +885,10 @@ def _build_risk_assessment(ctx: dict[str, Any]) -> dict[str, Any]:
             for r in sorted(risks, key=lambda r: r.get("uncertainty_adjusted_score", 0), reverse=True)[:5]
         ],
         "risk_drivers": [
-            r["title"] for r in sorted(risks, key=lambda r: r.get("uncertainty_adjusted_score", 0), reverse=True)[:3]
+            r["title"]
+            for r in sorted(
+                risks, key=lambda r: r.get("uncertainty_adjusted_score", 0), reverse=True
+            )[:3]
         ],
         "mitigation_overview": (
             "The highest-value mitigations are the ones that retire the most "

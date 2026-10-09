@@ -113,6 +113,7 @@ __all__ = [
     "irr",
     "lcoh",
     "network_heat_loss",
+    "network_score",
     "npv",
     "opex",
     "parameters_for_configuration",

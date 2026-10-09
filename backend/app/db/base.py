@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import DateTime, MetaData, String, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.types import JSON, TypeDecorator, UUID
+from sqlalchemy.types import JSON, UUID, TypeDecorator
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -22,7 +23,7 @@ NAMING_CONVENTION = {
 
 def utc_now() -> datetime:
     """Current UTC time. Used as the default for every timestamp column."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class UTCDateTime(TypeDecorator):
@@ -35,16 +36,16 @@ class UTCDateTime(TypeDecorator):
         if value is None:
             return None
         if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
-        value = value.astimezone(timezone.utc)
+            value = value.replace(tzinfo=UTC)
+        value = value.astimezone(UTC)
         return value.replace(tzinfo=None) if dialect.name == "sqlite" else value
 
     def process_result_value(self, value: datetime | None, dialect: Any) -> datetime | None:
         if value is None:
             return None
         if value.tzinfo is None:
-            return value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc)
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
 
 
 class JSONType(TypeDecorator):

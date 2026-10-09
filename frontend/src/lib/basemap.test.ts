@@ -1,3 +1,4 @@
+import type { Feature } from "@maplibre/maplibre-gl-style-spec";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -20,10 +21,14 @@ const spec = await import("@maplibre/maplibre-gl-style-spec");
 
 const circleSpec = spec.v8.paint_circle;
 
-const feature = (properties: Record<string, unknown>) => ({
-  type: "Point" as const,
+/**
+ * The style-spec's `Feature`, which is not GeoJSON's: `geometry` is vector-tile
+ * shaped and optional. These paint expressions read properties only, so nothing
+ * beyond those is needed to evaluate one.
+ */
+const feature = (properties: Record<string, unknown>): Feature => ({
+  type: "Point",
   properties,
-  geometry: { type: "Point" as const, coordinates: [0, 0] as [number, number] },
 });
 
 const globals = { zoom: 6 };
@@ -105,7 +110,9 @@ describe("scoreColourExpression", () => {
 
   const rgb = (value: unknown) => {
     const parsed = value as { r: number; g: number; b: number };
-    return [parsed.r, parsed.g, parsed.b];
+    // A tuple rather than number[], so destructuring stays a number under
+    // noUncheckedIndexedAccess.
+    return [parsed.r, parsed.g, parsed.b] as const;
   };
 
   it("renders unassessed wells grey, never as a score band", () => {

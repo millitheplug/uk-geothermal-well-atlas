@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.core.enums import EpistemicStatus, GeothermalConfiguration
-from app.engineering.base import CalculationError, CalculationContext, Unit
+from app.engineering.base import CalculationContext, CalculationError, Unit
 from app.engineering.heatpump import (
     HeatPumpNotRequired,
     annual_heat_production,
@@ -18,8 +18,8 @@ from app.engineering.network import (
     pipe_length_cost_factor,
     supply_temperature_penalty,
 )
-from app.engineering.pipeline import WellInputs, assess_well
 from app.engineering.parameters import DEFAULTS, DEFAULTS_BY_KEY, ParameterSet
+from app.engineering.pipeline import WellInputs, assess_well
 from app.engineering.risk import required_categories
 
 

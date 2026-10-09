@@ -16,6 +16,7 @@ import math
 import pytest
 
 from app.db.geo import EARTH_RADIUS_M, bounding_box, distance_m
+from app.models.well import Well
 from app.services.query_service import (
     buildings_within_radius,
     haversine_m,
@@ -25,7 +26,6 @@ from app.services.query_service import (
     price_on,
     well_and_demand_density,
 )
-from app.models.well import Well
 
 # Reference distances computed from the published formula, for cross-checking.
 # London Eye to Big Ben, and a short urban distance.
@@ -117,7 +117,6 @@ class TestGeoExpressions:
             ).label("d"),
         ).limit(20)
 
-        import sqlalchemy as sa
 
         rows = db.execute(stmt).all()
         for well_id, sql_distance in rows:

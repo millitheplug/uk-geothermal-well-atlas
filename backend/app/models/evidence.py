@@ -27,7 +27,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import EpistemicStatus, SourceReliability
-from app.db.base import UUID, Base, UTCDateTime, created_at_col, updated_at_col
+from app.db.base import UUID, Base, UTCDateTime, created_at_col
 
 
 class Dataset(Base):

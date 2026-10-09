@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app.core.enums import (
@@ -289,11 +289,8 @@ def normalise_temperature(
         method_key, (DataConfidence.LOW.value, EpistemicStatus.UNKNOWN.value)
     )
 
-    try:
-        depth = parse_float(depth_m, "depth_m")
-    except RejectedRecord:
-        depth = None
-
+    # depth_m is accepted because every caller has it, but nothing downstream
+    # records a depth: Normalisation reports the value, its status and a note.
     note = None
     if method_key not in TEMPERATURE_METHOD_MAP:
         note = (
@@ -492,4 +489,4 @@ def normalise_well_record(
 
 def touch_timestamp() -> datetime:
     """Current time, used for ingestion bookkeeping."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

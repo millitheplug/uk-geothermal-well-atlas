@@ -6,11 +6,11 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, Date, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, Date, Float, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import EpistemicStatus
-from app.db.base import UUID, Base, UTCDateTime, created_at_col, updated_at_col
+from app.db.base import UUID, Base, created_at_col
 
 
 class Formation(Base):

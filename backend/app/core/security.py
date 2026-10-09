@@ -21,10 +21,10 @@ import logging
 import secrets
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
-from fastapi import Depends, Header, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import Select, select
@@ -33,7 +33,6 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.analysis import Analysis
-from app.models.heat import Building, HeatDemand, HeatNetwork
 from app.models.project import Project, ProjectWell
 from app.models.user import ROLE_RANK, APIKey, AuditLog, Tenant, User
 from app.models.well import Well
@@ -58,7 +57,8 @@ PBKDF2_DERIVED_BYTES = 32
 #: Longest accepted password, in bytes. Applied to the hash and to validation.
 MAX_PASSWORD_BYTES = 1024
 
-_PASSWORD_SCHEME = "pbkdf2_sha256"
+#: Identifier of the password hashing scheme in use, not a password itself.
+_PASSWORD_SCHEME = "pbkdf2_sha256"  # noqa: S105
 
 
 def hash_password(password: str) -> str:
@@ -135,7 +135,7 @@ def validate_password_strength(password: str) -> None:
 def create_access_token(
     *, user_id: uuid.UUID, tenant_id: uuid.UUID, role: str, expires_minutes: int | None = None
 ) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + timedelta(
         minutes=expires_minutes or settings.access_token_ttl_minutes
     )
@@ -253,7 +253,7 @@ def _caller_from_api_key(db: Session, raw_key: str) -> Caller:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="unknown or revoked api key"
         )
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if api_key.expires_at and api_key.expires_at < now:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="api key has expired"

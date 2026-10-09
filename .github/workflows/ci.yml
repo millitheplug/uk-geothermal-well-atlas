@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same ref makes an in-flight run pointless.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only. Nothing here needs to write to the repository.
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend — lint & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # Lint runs first because it is cheap and it is not merely stylistic:
+      # the first ever ruff pass found a duplicated `run` that had silently
+      # disabled Rule 6, the gate stopping the model from overriding the
+      # deterministic recommendation. `alembic/versions` is excluded and a few
+      # per-file ignores are set in pyproject.toml; everything else is clean.
+      - name: Lint
+        run: ruff check .
+
+      # Tests run in random order (pytest-randomly). That is deliberate - a
+      # fixed order can hide coupling, and this suite has already caught one
+      # bug that way. SQLite keeps the run self-contained: PostGIS-specific
+      # behaviour is covered by the dialect-aware fallback and is exercised
+      # separately against a real database.
+      - name: Test
+        env:
+          DATABASE_URL: sqlite:///./test.db
+          ENVIRONMENT: test
+        run: pytest tests/ -q
+
+  frontend:
+    name: Frontend — lint, types, tests & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # package.json's `allowScripts` approves esbuild's install script, which
+      # vitest relies on. If that entry is ever dropped, the test step is what
+      # will fail - deliberately, rather than silently skipping the tests.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `next lint` passes on style, this one checks the types. It is a
+      # separate step so a type error is not misread as a lint failure.
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      # `next build` fetches the Inter and JetBrains Mono webfonts, so it needs
+      # outbound network. ESLint is configured not to run during builds
+      # (see next.config.mjs); it has its own step above.
+      - name: Build
+        run: npm run build

@@ -17,10 +17,10 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.enums import EpistemicStatus
-from app.db.base import UUID, Base, UTCDateTime, created_at_col, updated_at_col
+from app.db.base import UUID, Base, created_at_col, updated_at_col
 
 
 class Building(Base):

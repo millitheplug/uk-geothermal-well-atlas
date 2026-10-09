@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from app.agents.agents import FeasibilityAgent
 from app.agents.base import enforce_discipline
 from app.agents.llm import LLMError, MockProvider, get_llm_provider
-from app.agents.orchestrator import AgentOrchestrator, render_report_markdown
+from app.agents.orchestrator import AgentOrchestrator
 from app.agents.prompts import REQUIRED_REPORT_SECTIONS, system_prompt_for
 from app.agents.schemas import (
     AGENT_NAMES,

@@ -18,14 +18,13 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool, text
-
-from app.core.config import settings
-from app.db.base import Base
 
 # Populates Base.metadata with every table. Do not remove.
 import app.models  # noqa: F401,E402
+from alembic import context
+from app.core.config import settings
+from app.db.base import Base
 
 config = context.config
 

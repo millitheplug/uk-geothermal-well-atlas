@@ -15,7 +15,6 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,10 +23,6 @@ from app.core.enums import (
     AnalysisStatus,
     EpistemicStatus,
     GeothermalConfiguration,
-    Impact,
-    Likelihood,
-    RiskCategory,
-    ValidationActionPriority,
 )
 from app.db.base import UUID, Base, UTCDateTime, created_at_col, updated_at_col
 

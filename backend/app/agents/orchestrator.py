@@ -25,7 +25,7 @@ from app.agents.base import AgentRun, DisciplineViolation, claims_from_output
 from app.agents.llm import LLMError, LLMProvider, get_llm_provider
 from app.agents.prompts import REQUIRED_REPORT_SECTIONS
 from app.agents.schemas import ReportOutput, ReportSection
-from app.core.enums import AnalysisStage, EpistemicStatus
+from app.core.enums import AnalysisStage
 from app.engineering.pipeline import WellAssessment
 
 logger = logging.getLogger(__name__)

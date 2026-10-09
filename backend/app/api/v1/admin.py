@@ -11,12 +11,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.deps import DbSession, spatial_dialect
 from app.core.config import settings
-from app.core.security import Caller, CurrentCaller, record_audit
+from app.core.security import CurrentCaller, record_audit
 from app.data_import.registry import ADAPTERS, list_adapters, run_adapter, run_bootstrap
 from app.db.geo import spatial_dialect_label
 from app.models.analysis import RegulatoryRequirement
 from app.models.evidence import Dataset
-from app.models.heat import EnergyPrice, HeatNetwork
+from app.models.heat import EnergyPrice
 from app.models.well import Well
 from app.schemas.well import HealthResponse, HeatDemandSummary
 from app.services import query_service as qs

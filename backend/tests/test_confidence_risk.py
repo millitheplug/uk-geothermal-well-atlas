@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -181,7 +181,7 @@ class TestMeasurementQuality:
 
 class TestRecency:
     def test_recent_data_beats_old_data(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         recent = assess_confidence(
             temperature_status="MEASURED",
             measurement_method="static_bht",
@@ -197,7 +197,7 @@ class TestRecency:
         assert recent.score > old.score
 
     def test_abandoned_well_with_old_data_is_penalised(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         old_date = now - timedelta(days=365 * 30)
         abandoned = assess_confidence(
             temperature_status="MEASURED", measurement_method="static_bht",
@@ -254,14 +254,14 @@ class TestCrossSourceAgreement:
             temperature_status="MEASURED", sources=["a", "b"],
             temperature_values_c=[78.0, 92.0],
         )
-        t = next(c for c in tight.components if c.name == "cross_source_agreement")
-        l = next(c for c in loose.components if c.name == "cross_source_agreement")
-        assert l.score < t.score
+        tight_component = next(c for c in tight.components if c.name == "cross_source_agreement")
+        loose_component = next(c for c in loose.components if c.name == "cross_source_agreement")
+        assert loose_component.score < tight_component.score
 
 
 class TestOverallConfidence:
     def test_well_characterised_beats_well_unknown(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         good = assess_confidence(
             source_reliabilities=[0.95, 0.92],
             present_fields={

@@ -18,15 +18,16 @@ import hashlib
 import json
 import logging
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.enums import EpistemicStatus, SourceReliability
+from app.core.enums import SourceReliability
 from app.db.session import session_scope
 from app.models.evidence import Dataset
 
@@ -231,7 +232,7 @@ class Adapter(abc.ABC):
                 "records_rejected": result.records_rejected,
             }
             dataset_row.status = "complete" if result.ok else "complete_with_errors"
-            dataset_row.last_ingested_at = datetime.now(timezone.utc)
+            dataset_row.last_ingested_at = datetime.now(UTC)
             db.flush()
 
         result.duration_seconds = time.perf_counter() - started
@@ -286,8 +287,7 @@ def load_json_records(path: str | Path) -> Iterator[dict[str, Any]]:
         return
 
     if text.startswith("["):
-        for record in json.loads(text):
-            yield record
+        yield from json.loads(text)
         return
 
     if text.startswith("{") and "\n" not in text:

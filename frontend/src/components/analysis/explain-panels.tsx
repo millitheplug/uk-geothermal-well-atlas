@@ -518,7 +518,7 @@ export function AssuranceFooter() {
         The composite score, the recommendation and every figure above were
         computed by the deterministic Python engine. The eleven analysis agents
         may only narrate these results, and a discipline gate rejects any output
-        that claims commercial viability or disagrees with the engine's
+        that claims commercial viability or disagrees with the engine&apos;s
         recommendation.
       </p>
     </div>

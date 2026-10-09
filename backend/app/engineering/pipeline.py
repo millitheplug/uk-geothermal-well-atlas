@@ -22,7 +22,6 @@ to the last decimal place.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -30,20 +29,17 @@ from app.core.enums import (
     DataConfidence,
     EpistemicStatus,
     GeothermalConfiguration,
-    Recommendation,
     WellStatus,
 )
 from app.engineering import confidence as confidence_engine
 from app.engineering import cost as cost_engine
 from app.engineering import financial as fin_engine
-from app.engineering import heatpump
+from app.engineering import heatpump, scoring, thermal
 from app.engineering import network as network_engine
-from app.engineering.opex import opex
 from app.engineering import parameters as param_engine
 from app.engineering import risk as risk_engine
-from app.engineering import scoring
-from app.engineering import thermal
-from app.engineering.base import CalculationContext, CalculationError, Unit
+from app.engineering.base import CalculationContext, CalculationError
+from app.engineering.opex import opex
 
 PIPELINE_VERSION = "0.1.0"
 

@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import uuid
-from collections import defaultdict
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query
 
 from app.api.deps import DbSession, spatial_dialect
 from app.core.security import CurrentCaller
