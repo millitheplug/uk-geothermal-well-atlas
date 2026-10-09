@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Light theme.
+ *
+ * Hues are chosen so that the six epistemic labels remain distinguishable for
+ * deuteranopic and protanopic viewers, and every status is additionally carried
+ * by a text label in the UI - colour is reinforcement, never the sole carrier
+ * of meaning.
+ */
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 222 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 12%;
+
+    --primary: 199 89% 26%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 24% 94%;
+    --secondary-foreground: 222 25% 18%;
+
+    --muted: 40 20% 95%;
+    --muted-foreground: 220 9% 42%;
+
+    --accent: 24 82% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 14% 88%;
+    --input: 40 14% 88%;
+    --ring: 199 89% 26%;
+
+    --radius: 0.5rem;
+
+    /* Recommendation levels */
+    --priority-high: 158 64% 26%;
+    --priority-medium: 42 92% 42%;
+    --priority-low: 24 82% 48%;
+    --priority-none: 220 9% 46%;
+
+    /* Epistemic labels: measured = strongest green, unknown = grey */
+    --ep-fact: 158 64% 26%;
+    --ep-measured: 172 66% 32%;
+    --ep-derived: 199 89% 34%;
+    --ep-estimate: 42 92% 40%;
+    --ep-modelled: 262 60% 48%;
+    --ep-assumption: 24 82% 45%;
+    --ep-unknown: 220 9% 52%;
+
+    /* Ordered score ramp (viridis-like: dark blue -> teal -> yellow) */
+    --score-0: 258 60% 42%;
+    --score-20: 232 52% 46%;
+    --score-40: 196 58% 40%;
+    --score-60: 168 62% 34%;
+    --score-80: 128 55% 36%;
+    --score-100: 92 60% 32%;
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 40 20% 94%;
+
+    --card: 222 28% 11%;
+    --card-foreground: 40 20% 94%;
+
+    --popover: 222 28% 11%;
+    --popover-foreground: 40 20% 94%;
+
+    --primary: 199 89% 58%;
+    --primary-foreground: 222 40% 10%;
+
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 40 20% 94%;
+
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 12% 65%;
+
+    --accent: 24 90% 58%;
+    --accent-foreground: 222 40% 10%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 18% 22%;
+    --input: 220 18% 22%;
+    --ring: 199 89% 58%;
+
+    --priority-high: 158 62% 48%;
+    --priority-medium: 42 92% 56%;
+    --priority-low: 24 88% 60%;
+    --priority-none: 220 12% 62%;
+
+    --ep-fact: 158 62% 48%;
+    --ep-measured: 172 62% 50%;
+    --ep-derived: 199 85% 62%;
+    --ep-estimate: 42 92% 60%;
+    --ep-modelled: 262 70% 70%;
+    --ep-assumption: 24 88% 62%;
+    --ep-unknown: 220 10% 60%;
+
+    /* Lighter ramp on dark: the same ordering, reversed luminance so high
+       scores read as "hot" rather than disappearing into the background. */
+    --score-0: 258 55% 52%;
+    --score-20: 232 52% 60%;
+    --score-40: 196 62% 58%;
+    --score-60: 168 66% 50%;
+    --score-80: 128 58% 54%;
+    --score-100: 92 68% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Numeric columns line up when digits are tabular. Used for every figure the
+     user may compare across rows. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /**
+   * Watermark for synthetic development data.
+   *
+   * Deliberately impossible to miss: a repeating diagonal pattern plus a text
+   * label. The requirement is that no screenshot, export or shared view of mock
+   * results can be mistaken for production data.
+   */
+  .mock-watermark::after {
+    content: "SYNTHETIC DATA";
+    @apply pointer-events-none absolute inset-0 z-20 flex items-center justify-center;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      hsl(var(--destructive) / 0.09) 0px,
+      hsl(var(--destructive) / 0.09) 12px,
+      transparent 12px,
+      transparent 34px
+    );
+  }
+
+  .mock-badge::before {
+    content: "SYNTHETIC";
+    @apply mr-1 rounded bg-destructive px-1 py-0.5 text-[9px] font-bold tracking-wider text-destructive-foreground;
+  }
+
+  /* Shimmer placeholder for loading panels. */
+  .shimmer {
+    @apply relative overflow-hidden bg-muted;
+  }
+
+  .shimmer::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.06),
+      transparent
+    );
+  }
+
+  /* MapLibre overrides so the map inherits the theme. */
+  .maplibregl-ctrl-group {
+    @apply rounded-md border border-border bg-card shadow-sm;
+  }
+
+  .maplibregl-popup-content {
+    @apply rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg;
+  }
+
+  .maplibregl-popup-tip {
+    @apply border-border bg-popover;
+  }
+
+  /* Attribution is a licence condition, so it stays legible and expanded
+     rather than collapsing into an icon the user has to discover. */
+  .maplibregl-ctrl-attrib {
+    @apply rounded border border-border bg-card/90 text-[10px] text-muted-foreground;
+  }
+
+  .maplibregl-ctrl-attrib a {
+    @apply text-muted-foreground underline-offset-2 hover:underline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

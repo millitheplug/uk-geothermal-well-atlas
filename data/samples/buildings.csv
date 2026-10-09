@@ -1,0 +1,25 @@
+# Schema example, NOT real data. Every value here is fabricated.
+# See data/README.json.
+#
+# Building demand is MODELLED from floor area and building type, never metered.
+# This is the single most important caveat in the heat-demand dataset: it is a
+# screening estimate for comparing locations, not a substitute for a heat audit,
+# and it will not reveal that one industrial estate holds more demand than a
+# thousand houses.
+#
+# required_supply_temperature_c drives whether a well can serve the building
+# directly or needs a heat pump, so it is worth getting right where real data
+# exists - EPC data, or a heat network operator's records.
+#
+# peak_heat_demand_kw summed across buildings is a COINCIDENT peak and therefore
+# overstates a real network peak. Any comparison should note that.
+
+id,latitude,longitude,postcode,building_type,floor_area_m2,annual_heat_demand_kwh,peak_heat_demand_kw,required_supply_temperature_c,current_fuel,connection_potential,status
+b00001,50.2712,-5.0438,TR21 3AA,detached,124.0,31200.0,7.2,65.0,gas_central,good,occupied
+b00002,50.2708,-5.0451,TR21 3AB,terraced,88.0,22400.0,5.1,70.0,gas_central,good,occupied
+b00003,50.2704,-5.0444,TR21 3AD,flat,62.0,15100.0,3.6,80.0,electric,moderate,occupied
+b00004,50.2699,-5.0462,TR21 3AE,commercial,840.0,196000.0,41.0,55.0,oil_boiler,moderate,occupied
+b00005,50.2715,-5.0440,TR21 3AF,industrial,3400.0,1180000.0,265.0,45.0,oil_boiler,good,occupied
+b00006,52.9485,-1.1841,NG11 8AA,semidetached,104.0,26400.0,6.0,70.0,gas_central,poor,occupied
+b00007,52.9488,-1.1834,NG11 8AB,detached,142.0,35800.0,8.1,60.0,gas_central,good,occupied
+b00008,52.9479,-1.1828,NG11 8AC,public,1200.0,290000.0,58.0,75.0,gas_central,moderate,occupied

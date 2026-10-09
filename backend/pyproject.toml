@@ -1,0 +1,74 @@
+[project]
+name = "ukgeothermal-backend"
+version = "0.1.0"
+description = "UK Geothermal Well Atlas - FastAPI backend"
+requires-python = ">=3.11"
+
+dependencies = [
+  "fastapi>=0.111",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0.31",
+  "alembic>=1.13",
+  "psycopg[binary]>=3.2",
+  "geoalchemy2>=0.15",
+  "redis>=5.0",
+  "httpx>=0.27",
+  "python-jose[cryptography]>=3.3",
+  "python-multipart>=0.0.9",
+  "anthropic>=0.34",
+  "pydantic[email]",
+]
+
+# Deliberately absent, with reasons:
+#
+#   passlib / bcrypt  Passwords use PBKDF2-HMAC-SHA256 from the standard library.
+#                     passlib's bcrypt backend is unmaintained and broke with
+#                     bcrypt 4.x; the algorithm here keeps password verification
+#                     free of any third-party dependency.
+#   numpy             The financial module is pure Python on purpose. Every figure
+#                     must be reproducible from the formula alone, with no solver
+#                     version to pin and no floating-point behaviour to document.
+#   celery            Background work is a polling worker (workers/), not a
+#                     broker-backed queue. At current volume a queue is a second
+#                     thing to operate for no benefit.
+#   shapely           Geometry work happens in SQL, through PostGIS or the
+#                     haversine fallback, rather than in Python.
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  # Tests must not depend on ordering. This has already caught one real bug that
+  # a fixed order would have hidden, so it stays enabled rather than pinned off.
+  "pytest-randomly>=3.15",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+  "mypy>=1.10",
+]
+postgres = ["psycopg[binary]>=3.2", "pgvector>=0.3"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+ignore = ["S101", "B008"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

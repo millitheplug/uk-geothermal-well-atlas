@@ -1,0 +1,67 @@
+# Local development services.
+#
+# None of these are required to run the platform. SQLite plus a haversine
+# fallback covers everything except PostGIS earth_distance queries, spatial
+# clustering, and the background worker.
+#
+#   docker compose -f infra/docker-compose.yml up -d
+#
+# Image tags are pinned rather than floating so a rebuild six months from now
+# does not silently move to a new major version of PostGIS.
+
+name: uk-geothermal-atlas
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ukgeothermal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # Deterministic collation. Changes to this alter index ordering, which
+      # changes geospatial query plans.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ukgeothermal"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7.2-alpine
+    # Cache and rate-limit counters only. Nothing durable lives here, so no
+    # persistence is configured on purpose: a full disk should degrade the cache,
+    # not silently resurrect stale entries.
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  pgdata:
+  miniodata:

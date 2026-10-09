@@ -1,0 +1,26 @@
+{
+  "name": "UK Geothermal Well Atlas - source file samples",
+  "version": "2026.1",
+  "note": "These files are schema examples for real-data adapters. They are NOT development datasets and they are NOT loaded by the mock adapters. The mock adapters generate their records in code (backend/app/data_import/adapters/mock_*.py) so that a fresh checkout has something to run without shipping a file that could be mistaken for real data.",
+
+  "layout": {
+    "adapters/": "Where a real adapter should drop downloaded source files before ingest. Nothing here is read automatically.",
+    "samples/": "Schema examples. Field names match the adapters' expected shape so a real adapter can be written against them."
+  },
+
+  "conventions": {
+    "null_means": "unknown. Never zero, never an average. A null temperature means the well has no temperature record.",
+    "status": "Every measurement-bearing record carries its own provenance status: FACT | MEASURED | DERIVED | MODELLED | ESTIMATE | ASSUMPTION | UNKNOWN",
+    "confidence": "high | medium | low | very_low | unknown",
+    "is_mock": "true for anything synthetic. This is the flag that watermarks the interface; a real adapter must set it to false.",
+    "licence": "Record the publisher's licence. If terms forbid redistribution, the platform's no-index posture and tenant scoping matter more than usual."
+  },
+
+  "files": {
+    "wells.csv": "Well headers. One row per borehole.",
+    "temperatures.csv": "Every temperature reading, not just the winning one. Disagreements between sources are the point.",
+    "buildings.csv": "Building footprints with modelled demand.",
+    "energy_prices.csv": "Price book. Price without a vintage is an assumption wearing a fact's clothes.",
+    "regulatory_requirements.csv": "Indicative consent requirements by jurisdiction and configuration."
+  }
+}

@@ -1,0 +1,26 @@
+# Schema example, NOT real data. Every value here is fabricated.
+# See data/README.json.
+#
+# One row per READING, not per well. A well commonly has several, and they
+# frequently disagree. Keeping them all is what makes the disagreement visible
+# and lets the roll-up prefer the deepest STABILISED reading.
+#
+# is_final_stabilised=false means the value overstates what is producible: a
+# maximum dynamic temperature is taken while the well is flowing and the fluid
+# cools during production. The roll-up must never promote one of these.
+#
+# measurement_method drives the epistemic status:
+#   static_bht, circulation_test, thermal_recovery_test, max_dynamic, dynamic,
+#   production_log, dts, dts_reprocessed  ->  generally MEASURED
+#   gamma, analogue, extrapolated          ->  ESTIMATE
+#   modelled, petrophysical_model, basin_model -> MODELLED
+# A log-derived formation temperature is a real estimate, not a bottom-hole
+# survey, and must not be labelled MEASURED.
+
+well_id,depth_m,temperature_c,measurement_method,status,confidence,is_final_stabilised,geothermal_gradient_c_per_km,measured_at,source,source_url,evidence_id,note
+EXAMPLE-001,2380.0,74.2,static_bht,MEASURED,high,true,27.4,1988-11-02,"Well completion report",https://example.invalid/EXAMPLE-001/temp,
+EXAMPLE-001,2410.0,79.8,max_dynamic,MEASURED,medium,false,27.4,1988-11-05,"Production log",https://example.invalid/EXAMPLE-001/prod,,Taken while flowing; overstates the producible figure.
+EXAMPLE-001,1200.0,41.0,dts,ESTIMATE,medium,true,27.4,2011-03-20,"Reprocessed DTS survey",https://example.invalid/EXAMPLE-001/dts,,Formation temperature, not a bottom-hole survey.
+EXAMPLE-002,1150.0,46.5,circulation_test,MEASURED,medium,true,32.1,1994-08-11,"Operator test report",https://example.invalid/EXAMPLE-002/temp,
+EXAMPLE-002,1150.0,43.9,analogue,ESTIMATE,low,true,32.1,,,,"Used as a cross-check only. Disagrees with the measured value by 2.6 K.",
+EXAMPLE-003,,,unknown,UNKNOWN,unknown,false,,,,,"No temperature survey exists for this well. Thermal potential is unknown, not zero."

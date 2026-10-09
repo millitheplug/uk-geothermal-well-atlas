@@ -1,0 +1,45 @@
+# Local artefacts
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Next
+node_modules/
+.next/
+out/
+next-env.d.ts.timestamp
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Real source downloads. Most source licences restrict redistribution, and a
+# file in version control is a file that has been redistributed.
+data/adapters/**
+!data/adapters/README.md
+
+# Reports and exports
+reports/
+*.csv.out

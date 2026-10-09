@@ -1,0 +1,17 @@
+# Schema example, NOT real data. Every value here is fabricated and does not
+# correspond to any UK borehole. See data/README.json.
+#
+# Field names match what a real NSTA-style well export would provide after
+# normalisation. `null` means unknown, never zero.
+#
+# is_final_stabilised: false means the reading overstates what is producible and
+# the roll-up must never promote it. max_dynamic readings are the usual case.
+#
+# Disagreeing sources are intentional in this example: they exercise the
+# confidence machinery, which a dataset of perfectly consistent values would
+# never test.
+
+well_id,well_name,latitude,longitude,region,county,licence,status,original_purpose,operator,commissioned_date,total_depth_m,md_m,tvd_m,is_deviated,max_deviation_deg,formation,basin,casing_string,completion_type,has_wellhead,loggable,source,source_url,is_mock
+EXAMPLE-001,Example Field 1,50.2660,-5.0507,South West England,Cornwall,EX/2020/118,non_producing,exploration,Example Energy,1988-04-19,2410.0,2410.0,2398.0,true,3.2,"Cornwall granite",West Penwith,"9 5/8in to 480 m; 7in to 2100 m",open_perforated,true,true,example_nsta,https://example.invalid/EXAMPLE-001,true
+EXAMPLE-002,Example Field 2,52.9480,-1.1830,East Midlands,Nottinghamshire,L/1994/7,suspended,gas,Example Oil plc,1994-06-02,1180.0,1180.0,1175.0,false,,"Permian Limestone",East Midlands Basin,"8 5/8in to 640 m",perforated,true,false,example_nsta,https://example.invalid/EXAMPLE-002,true
+EXAMPLE-003,Example Field 3,53.4808,-2.4402,North West England,Cheshire,L/1981/22,plugged_abandoned,oil,Example Oil plc,1981-09-14,1985.0,1985.0,1875.0,true,11.4,"Sherwood Sandstone",West Lancashire Basin,"7in to 1900 m",,,,,,1985-03-01,1985-03-01,example_nsta,https://example.invalid/EXAMPLE-003,true

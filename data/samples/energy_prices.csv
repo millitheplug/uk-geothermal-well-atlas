@@ -1,0 +1,17 @@
+# Schema example, NOT real data. Every value here is fabricated.
+# See data/README.json.
+#
+# published_date and period_start/period_end are not decoration. A 2019 price
+# presented without its date is an assumption wearing a fact's clothes, and a
+# price book without vintages cannot be compared against itself six months later.
+#
+# source_tier feeds the source_reliability confidence axis, which is 25% of the
+# confidence score. A regulator publication and a vendor estimate must not score
+# the same, and this column is how that distinction survives ingestion.
+
+fuel,sector,unit,period_start,period_end,price_p_per_kwh,source,source_tier,published_date,url,is_mock
+gas,industrial,p/kWh,2026-01-01,2026-03-31,2.31,Example quarterly price book,vendor_estimate,2026-04-15,https://example.invalid/prices/gas,true
+electricity,industrial,p/kWh,2026-01-01,2026-03-31,18.42,Example quarterly price book,vendor_estimate,2026-04-15,https://example.invalid/prices/power,true
+gas,domestic,p/kWh,2026-01-01,2026-03-31,6.03,Example tariff cap,regulator_publication,2026-04-01,https://example.invalid/prices/cap,true
+electricity,domestic,p/kWh,2026-01-01,2026-03-31,25.00,Example tariff cap,regulator_publication,2026-04-01,https://example.invalid/prices/cap,true
+gas,industrial,p/kWh,2019-01-01,2019-03-31,2.10,Example historical series,vendor_estimate,2019-04-15,https://example.invalid/prices/gas,true

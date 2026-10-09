@@ -1,0 +1,28 @@
+# Schema example, NOT real data. Every value here is fabricated.
+# See data/README.json.
+#
+# INDICATIVE ONLY. A screening tool cannot establish what a regulator will
+# actually require, and this catalogue exists to show the shape and cost of the
+# burden rather than to answer a compliance question. Every surface that renders
+# it says so.
+#
+# applies_to_configuration is what makes this useful: an open loop abstracts
+# water and needs an abstraction licence, a closed loop does not. That
+# difference is a real regulatory advantage and it is why the configuration
+# choice is scored rather than assumed.
+#
+# typical_lead_time_months and estimated_cost_gbp are planning figures. Leave
+# them null rather than guessing - a null reads as "not established" and a
+# guess reads as a fact.
+
+jurisdiction,title,description,authority,applies_to_configuration,is_mandatory,typical_lead_time_months,estimated_cost_gbp,source,url,is_mock
+England,Water abstraction licence,"Licence required to abstract more than 20 m3 per day from underground strata for non-domestic purposes.",Environment Agency,open_loop,true,8,4500,"Water Resources Act 1998 Schedule 2",https://example.invalid/reg/wra,true
+England,Water discharge consent,"Consent required where abstracted water is returned to ground or surface water at a different quality.",Environment Agency,open_loop,true,6,9000,"Water Resources Act 1998 Schedule 2",https://example.invalid/reg/wra,true
+England,Well notification,"Duty to notify HSE of wells deeper than 20 m, and of any changes to their status.",HSE,all,true,1,0,"Wells of more than 20 metres",https://example.invalid/reg/hse,true
+England,Mine Risk Assessment,"Applies where a borehole falls within the meaning of the Mines Regulations 1999.",HSE,all,false,4,6000,"The Mines Regulations 1999",https://example.invalid/reg/mra,true
+England,Planning permission,"Change of use of a borehole and construction of plant and network infrastructure.",Local planning authority,all,true,12,0,"Town and Country Planning Act 1990",https://example.invalid/reg/planning,true
+Scotland,Water abstraction licence,"As England, under the Water (Scotland) Act 1980.",SEPA,open_loop,true,9,4600,"Water (Scotland) Act 1980",https://example.invalid/reg/wsa,true
+Scotland,Environmental authorisation,"Required where abstractions may affect the water environment.",SEPA,open_loop,true,10,7000,"Water Environment (Controlled Activities) (Scotland) Regulations 2011",https://example.invalid/reg/sepa,true
+Wales,Water abstraction licence,"As England, under the Water Resources Act 1998.",NRW,open_loop,true,9,4500,"Water Resources Act 1998",https://example.invalid/reg/dwr,true
+Wales,Environmental permit,"Consent to abstract from and discharge to groundwater.",NRW,open_loop,true,8,6500,"Water Resources Act 1998",https://example.invalid/reg/dwr,true
+Northern Ireland,Water abstraction licence,"As England, under the Northern Ireland Water Act 1971.",EA Northern Ireland,open_loop,true,10,4800,"Water (Northern Ireland) Order 1978",https://example.invalid/reg/nidirect,true
