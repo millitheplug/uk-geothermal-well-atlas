@@ -85,7 +85,7 @@ jobs:
         run: python -m scripts.cli bootstrap
 
       - name: Create login
-        run: python -m scripts.cli seed-user --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD"
+        run: python -m scripts.cli seed-user --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD" --force
 
       # "with_temperature" covers the wells where thermal potential is known.
       # Wells with no recorded temperature have unknown potential and can be
