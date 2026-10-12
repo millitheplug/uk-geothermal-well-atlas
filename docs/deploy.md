@@ -60,3 +60,31 @@ redeploy. Without this the browser blocks the website from calling the API.
 
 The NSTA data is used under the NSTA User Agreement: non-commercial use only,
 with the attribution statement in `data/real/nsta/README.md`.
+
+## Troubleshooting a failed Render deploy
+
+**"Exited with status 1" during the build.** Render ran the build somewhere with no
+Python project file. Open the service's **Settings** and check:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `backend` |
+| Build Command | `pip install .` |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+
+A root-level `requirements.txt` also lets a build from the repository root succeed,
+but setting the root directory is the intended configuration. After changing a
+setting, use **Manual Deploy > Clear build cache & deploy**.
+
+**The build passes but the service will not start.** The API refuses to start in
+production unless every one of these environment variables is set:
+
+| Variable | Value |
+|---|---|
+| `ENVIRONMENT` | `production` |
+| `DEBUG` | `false` |
+| `SECRET_KEY` | a long random string (`python -c "import secrets;print(secrets.token_urlsafe(48))"`) |
+| `DATABASE_URL` | the Neon connection string, as copied |
+| `CORS_ORIGINS` | the website's address, with no trailing slash |
+
+The service log (Render > Logs) names the missing or invalid one.

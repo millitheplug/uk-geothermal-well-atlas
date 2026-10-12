@@ -1,0 +1,8 @@
+# Safety net for hosts that build from the repository root.
+#
+# The API is the Python package in ./backend. Render's blueprint (render.yaml)
+# sets the root directory to backend and installs it there. A service created by
+# hand without that setting would otherwise run its build at the repository root,
+# find no Python project file, and fail with "Exited with status 1". This line
+# makes a root build install the same package.
+./backend
