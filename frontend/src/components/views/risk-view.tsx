@@ -46,6 +46,7 @@ import {
 import { useApiData } from "@/components/providers/app-provider";
 import { api } from "@/lib/api";
 import { RISK_LABELS, humanise } from "@/lib/domain";
+import { wellKey } from "@/lib/utils";
 import type { CandidateRow, NationalDashboard, RiskCategory } from "@/types/api";
 
 /** Categories whose presence is caused by absent data rather than by physics. */
@@ -79,7 +80,8 @@ export function RiskView() {
 
   React.useEffect(() => {
     if (!selected && candidates.data && candidates.data.items.length > 0) {
-      setSelected(candidates.data.items[0]?.well_id ?? null);
+      const first = candidates.data.items[0];
+      setSelected(first ? wellKey(first) : null);
     }
   }, [candidates.data, selected]);
 
@@ -199,7 +201,7 @@ export function RiskView() {
                   </SelectTrigger>
                   <SelectContent>
                     {(candidates.data?.items ?? []).map((row: CandidateRow) => (
-                      <SelectItem key={row.well_id} value={row.well_id} className="text-xs">
+                      <SelectItem key={row.well_id} value={wellKey(row)} className="text-xs">
                         {row.well_name}
                       </SelectItem>
                     ))}
@@ -348,7 +350,7 @@ export function RiskView() {
                   </ul>
 
                   <Button variant="outline" size="sm" className="mt-3" asChild>
-                    <Link href={`/wells/${selectedAnalysis.well_id}`}>
+                    <Link href={`/wells/${wellKey(selectedAnalysis)}`}>
                       Open the full well record
                     </Link>
                   </Button>
@@ -367,7 +369,7 @@ export function RiskView() {
                     href={`/wells/${selected}`}
                     className="text-xs text-primary hover:underline"
                   >
-                    Open {candidates.data?.items.find((r) => r.well_id === selected)?.well_name ?? "the well"}
+                    Open {candidates.data?.items.find((r) => wellKey(r) === selected)?.well_name ?? "the well"}
                   </Link>
                 ) : undefined
               }

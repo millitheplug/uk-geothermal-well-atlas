@@ -48,6 +48,22 @@ export function fmtTemp(c: number | null | undefined): string {
   return `${c.toFixed(1)} °C`;
 }
 
+/**
+ * The key to use when linking to, assessing or filtering by a well.
+ *
+ * Responses report the publisher's id as `well_id`. For NSTA wells that is
+ * something like "LN/10- 4Z": not a UUID, and with a slash it cannot be a URL
+ * segment. Every well endpoint is keyed by the well's UUID, so use that, and
+ * fall back to the publisher's id only for an older backend that does not send
+ * it yet.
+ */
+export function wellKey(ref: {
+  well_uuid?: string | null;
+  well_id: string;
+}): string {
+  return ref.well_uuid ?? ref.well_id;
+}
+
 export function fmtDepth(m: number | null | undefined): string {
   if (m === null || m === undefined || Number.isNaN(m)) return "—";
   return `${Math.round(m).toLocaleString("en-GB")} m`;

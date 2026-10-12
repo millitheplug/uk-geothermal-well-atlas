@@ -969,6 +969,10 @@ class TestAnalysis:
         )
         assert fetched.status_code == 200
         assert fetched.json()["analysis_id"] == created["analysis_id"]
+        # The UUID is the key every well endpoint takes; `well_id` is only the
+        # publisher's id and cannot be used to open or filter by a well.
+        assert created["well_uuid"] == any_well_id
+        assert fetched.json()["well_uuid"] == any_well_id
 
     def test_unknown_well_returns_404(self, client: TestClient, project_id: str):
         response = client.post(
@@ -1161,6 +1165,45 @@ class TestDashboard:
         ):
             assert column in row, column
 
+    def test_candidate_rows_carry_a_uuid_that_opens_the_well(
+        self, client: TestClient, project_id: str
+    ):
+        """`well_id` is the publisher's id; the UUID is the key every endpoint takes.
+
+        NSTA ids look like "LN/10- 4Z": not a UUID, and not usable as a URL
+        segment. A page that used `well_id` to open, assess or filter by a well
+        therefore failed on real data while working on synthetic ids.
+        """
+        items = client.get(
+            "/api/v1/dashboard/candidates", headers=self._headers(), params={"limit": 5}
+        ).json()["items"]
+        assert items
+        for row in items:
+            uuid.UUID(row["well_uuid"])
+            assert row["well_uuid"] != row["well_id"]
+            well = client.get(f"/api/v1/wells/{row['well_uuid']}", headers=self._headers())
+            assert well.status_code == 200
+            assert well.json()["well_id"] == row["well_id"]
+            listed = client.get(
+                "/api/v1/analyses",
+                headers=self._headers(),
+                params={"well_id": row["well_uuid"], "limit": 1},
+            )
+            assert listed.status_code == 200
+            for analysis in listed.json():
+                assert analysis["well_uuid"] == row["well_uuid"]
+
+    def test_publisher_id_is_not_accepted_as_a_well_key(
+        self, client: TestClient, project_id: str
+    ):
+        """Pins the contract the frontend has to respect: UUIDs only."""
+        response = client.get(
+            "/api/v1/analyses",
+            headers=self._headers(),
+            params={"well_id": "LN/10- 4Z", "limit": 1},
+        )
+        assert response.status_code == 422
+
     def test_ranks_are_sequential(self, client: TestClient, project_id: str):
         items = client.get(
             "/api/v1/dashboard/candidates", headers=self._headers(), params={"limit": 20}
@@ -1216,6 +1259,24 @@ class TestHeatEndpoints:
         for c in clusters:
             if c["nearest_well_distance_m"] is not None:
                 assert c["nearest_well_distance_m"] <= 3000
+
+    def test_cluster_nearest_well_uuid_matches_its_publisher_id(
+        self, client: TestClient, project_id: str
+    ):
+        clusters = client.get(
+            "/api/v1/heat/clusters", headers=self._headers(), params={"cell_deg": 0.02}
+        ).json()
+        attributed = [c for c in clusters if c["nearest_well_id"]]
+        assert attributed
+        for cluster in attributed[:5]:
+            well = client.get(
+                f"/api/v1/wells/{cluster['nearest_well_uuid']}", headers=self._headers()
+            )
+            assert well.status_code == 200
+            assert well.json()["well_id"] == cluster["nearest_well_id"]
+        for cluster in clusters:
+            if not cluster["nearest_well_id"]:
+                assert cluster["nearest_well_uuid"] is None
 
     def test_clusters_flag_the_backend(self, client: TestClient, project_id: str):
         clusters = client.get(

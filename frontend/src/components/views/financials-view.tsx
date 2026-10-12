@@ -48,7 +48,7 @@ import { ScenarioPanel } from "@/components/analysis/whatif-panel";
 import { useApiData } from "@/components/providers/app-provider";
 import { api } from "@/lib/api";
 import { RECOMMENDATION_META } from "@/lib/domain";
-import { fmtGBP } from "@/lib/utils";
+import { fmtGBP, wellKey } from "@/lib/utils";
 import type { AnalysisResult, CandidateRow } from "@/types/api";
 
 export function FinancialsView() {
@@ -66,7 +66,7 @@ export function FinancialsView() {
   React.useEffect(() => {
     if (!selected && candidates.data && candidates.data.items.length > 0) {
       const first = candidates.data.items[0];
-      if (first) setSelected(first.well_id);
+      if (first) setSelected(wellKey(first));
     }
   }, [candidates.data, selected]);
 
@@ -111,7 +111,7 @@ export function FinancialsView() {
         actions={
           result ? (
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/wells/${result.well_id}`}>
+              <Link href={`/wells/${wellKey(result)}`}>
                 Full analysis and trace
               </Link>
             </Button>
@@ -133,7 +133,7 @@ export function FinancialsView() {
                 </SelectTrigger>
                 <SelectContent>
                   {rows.map((row) => (
-                    <SelectItem key={row.well_id} value={row.well_id} className="text-xs">
+                    <SelectItem key={row.well_id} value={wellKey(row)} className="text-xs">
                       #{row.rank} {row.well_name}
                       {row.lcoh_p_per_kwh !== null
                         ? ` — ${row.lcoh_p_per_kwh.toFixed(1)} p/kWh`
@@ -281,7 +281,7 @@ export function FinancialsView() {
                       {RECOMMENDATION_META[result.recommendation].tone}
                     </p>
                     <Link
-                      href={`/wells/${result.well_id}`}
+                      href={`/wells/${wellKey(result)}`}
                       className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                     >
                       See how the score was built
@@ -474,7 +474,7 @@ export function FinancialsView() {
                 </CardContent>
               </Card>
 
-              <ScenarioPanel wellId={result.well_id} />
+              <ScenarioPanel wellId={wellKey(result)} />
 
               <EvidenceDisclaimer />
             </>

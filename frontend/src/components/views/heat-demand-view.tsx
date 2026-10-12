@@ -47,6 +47,7 @@ import { api } from "@/lib/api";
 import type { MapFeature } from "@/lib/basemap";
 import { humanise } from "@/lib/domain";
 import type { HeatCluster } from "@/types/api";
+import { wellKey } from "@/lib/utils";
 
 export function HeatDemandView() {
   const summary = useApiData((signal) => api.demandSummary(signal), []);
@@ -303,7 +304,7 @@ export function HeatDemandView() {
                         <TableCell>
                           {cluster.nearest_well_id ? (
                             <Link
-                              href={`/wells/${cluster.nearest_well_id}`}
+                              href={`/wells/${cluster.nearest_well_uuid ?? cluster.nearest_well_id}`}
                               className="text-primary hover:underline"
                             >
                               {cluster.nearest_well_id}
@@ -351,7 +352,7 @@ export function HeatDemandView() {
                       <TableRow key={corridor.well_id}>
                         <TableCell>
                           <Link
-                            href={`/wells/${corridor.well_id}`}
+                            href={`/wells/${wellKey(corridor)}`}
                             className="font-medium hover:text-primary hover:underline"
                           >
                             {corridor.well_name}

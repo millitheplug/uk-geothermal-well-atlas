@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Query
@@ -143,18 +144,27 @@ def heat_clusters(
     from app.models.well import Well  # noqa: PLC0415
 
     well_rows = db.execute(
-        select(Well.well_id, Well.latitude, Well.longitude, Well.feasibility_score)
+        select(
+            Well.well_id,
+            Well.latitude,
+            Well.longitude,
+            Well.feasibility_score,
+            Well.id,
+        )
     ).all()
 
     clusters: list[HeatCluster] = []
     for index, cell in enumerate(sorted(demand_cells, key=lambda c: -c.demand_kwh)):
         nearest_id: str | None = None
+        nearest_uuid: uuid.UUID | None = None
         nearest_distance: float | None = None
 
         if nearest_wells and well_rows:
+            # The publisher's id is unique, so it decides any tie before the
+            # score or UUID is ever compared.
             distances = [
-                (qs.haversine_m(cell.lat, cell.lon, lat, lon), well_id, score)
-                for well_id, lat, lon, score in well_rows
+                (qs.haversine_m(cell.lat, cell.lon, lat, lon), well_id, score, well_uuid)
+                for well_id, lat, lon, score, well_uuid in well_rows
             ]
             best = min(distances)
             nearest_distance = best[0]
@@ -162,6 +172,7 @@ def heat_clusters(
             # distance; beyond about 3 km the pipe cost rules the pair out.
             if best[0] <= 3000.0:
                 nearest_id = best[1]
+                nearest_uuid = best[3]
 
         # Cluster radius from the cell diagonal.
         radius = qs.haversine_m(cell.lat, cell.lon, cell.lat + cell_deg, cell.lon) / 2.0
@@ -176,6 +187,7 @@ def heat_clusters(
                 centroid_longitude=cell.lon,
                 radius_m=radius,
                 nearest_well_id=nearest_id,
+                nearest_well_uuid=nearest_uuid,
                 nearest_well_distance_m=round(nearest_distance, 1) if nearest_distance else None,
                 is_clustered_with_postgis=False,
             )

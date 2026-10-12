@@ -352,6 +352,7 @@ def candidate_table(
         CandidateRow(
             rank=page["offset"] + index + 1,
             well_id=row.well_id,
+            well_uuid=row.id,
             well_name=row.well_name,
             latitude=row.latitude,
             longitude=row.longitude,
