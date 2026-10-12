@@ -263,6 +263,21 @@ class RiskBuilder:
             if age > 40:
                 probability = min(0.95, probability + 0.10)
 
+        # When the integrity record itself says the bore has no access or is in
+        # poor condition, failure is not a cost overrun but the loss of the
+        # opportunity: the impact is severe, which makes the risk critical and
+        # engages the recommendation's hard integrity gate. Every other status
+        # keeps a major impact.
+        impact = Impact.MAJOR.value
+        if status in (
+            WellIntegrityStatus.ABANDONED_NO_ACCESS.value,
+            WellIntegrityStatus.POOR_UNKNOWN.value,
+        ):
+            impact = Impact.SEVERE.value
+            evidence.append(
+                f"Integrity status is '{status}': the wellbore may not be re-enterable."
+            )
+
         return RiskItem(
             category=RiskCategory.WELL_INTEGRITY.value,
             title="Wellbore integrity failure or unrecoverable completion",
@@ -273,8 +288,8 @@ class RiskBuilder:
             ),
             likelihood=_likelihood_from_probability(probability),
             probability=probability,
-            impact=Impact.MAJOR.value,
-            impact_value=IMPACT_VALUES[Impact.MAJOR.value],
+            impact=impact,
+            impact_value=IMPACT_VALUES[impact],
             uncertainty=uncertainty,
             evidence=tuple(evidence),
             mitigation=(

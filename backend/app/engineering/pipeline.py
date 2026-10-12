@@ -29,6 +29,7 @@ from app.core.enums import (
     DataConfidence,
     EpistemicStatus,
     GeothermalConfiguration,
+    RiskCategory,
     WellStatus,
 )
 from app.engineering import confidence as confidence_engine
@@ -731,6 +732,10 @@ def assess_well(
         feasibility_score=feasibility,
         confidence_score=confidence_assessment.score,
         critical_risk_count=len(risk_assessment.critical_risks),
+        critical_integrity_risk=any(
+            r.category == RiskCategory.WELL_INTEGRITY.value
+            for r in risk_assessment.critical_risks
+        ),
         data_gap_count=len(data_gaps),
         lcoh_p_per_kwh=lcoh,
         heat_price_p_per_kwh=params["heat_price_p_per_kwh"],

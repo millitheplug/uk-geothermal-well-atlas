@@ -120,6 +120,27 @@ since NSTA's GIS migration. Do not point an adapter at it.
 | `COMPLESTAT` (mechanical status) | 2,138 | 1,696 are abandoned (Phase 1–3: 1,673) or plugged (23). Phase 3 abandonment means the bore is permanently sealed to surface — a critical integrity gate, not a score penalty. |
 | `ONS_COUNTY` | 2,131 | Usable for regional filtering. |
 
+**Loading it.** From the repository root, after `init`:
+
+```bash
+python -m scripts.fetch_nsta_onshore_wells     # download (gitignored)
+python -m scripts.cli ingest nsta_wells        # load as real, source = nsta_onshore
+```
+
+`nsta_wells` is deliberately not part of `bootstrap`; real data is loaded only on
+request. It refuses to merge into an existing synthetic well with the same id, so
+real and synthetic rows can coexist in one database without contaminating each
+other. A full load writes 2,138 wells, 19 temperature observations (14 more
+readings have no usable depth and are recorded as data gaps rather than used),
+and 1,696 integrity rows inferred from abandonment status. Operating wells get
+no integrity row: "completed" is not an inspection.
+
+**Integrity is a hard gate.** A well whose integrity record says no access or
+poor condition carries a *severe*, therefore critical, integrity risk, and
+`recommend()` caps any well with a critical integrity risk at LOW PRIORITY
+whatever its feasibility score. On the real data, all 8 temperature-bearing
+wells abandoned to surface are flagged this way.
+
 **Temperature labelling.** `MXTDTEMPC` is the publisher's maximum recorded hole
 temperature. The dataset does not say whether it is a stabilised survey or an
 uncorrected bottom-hole temperature (BHT) taken during drilling; uncorrected BHTs

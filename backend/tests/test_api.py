@@ -1268,7 +1268,11 @@ class TestAdmin:
     def test_adapters_are_listed(self, client: TestClient):
         body = client.get("/api/v1/admin/adapters", headers=self._headers()).json()
         assert body["count"] > 0
-        assert all(a["is_mock"] for a in body["adapters"])
+        # Synthetic adapters are flagged synthetic by name and flag; the real
+        # NSTA adapter is flagged real. No adapter may be ambiguous.
+        for a in body["adapters"]:
+            assert a["is_mock"] == a["name"].startswith("mock_"), a
+        assert any(not a["is_mock"] for a in body["adapters"]), "real NSTA adapter missing"
 
     def test_ingest_requires_owner(self, client: TestClient, user: dict):
         response = client.post(
