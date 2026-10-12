@@ -1,8 +1,9 @@
 name: Load database
 
 # Run manually from the Actions tab. Applies the schema to the hosted Postgres,
-# loads the 2,138 real NSTA wells, creates the login and runs the assessments.
-# Safe to re-run: the migration and well import are idempotent.
+# loads the 2,138 real NSTA wells, creates the login and runs assessments.
+# Safe to re-run: the migration and well import are idempotent. Re-runs can
+# skip the slow import with load_wells off.
 #
 # Needs three repository secrets (Settings > Secrets and variables > Actions):
 #   DATABASE_URL    connection string from Neon, pasted exactly as shown
@@ -12,10 +13,18 @@ name: Load database
 on:
   workflow_dispatch:
     inputs:
-      assess:
-        description: "Run feasibility assessments on every well (about 2 minutes)"
+      load_wells:
+        description: "Import the 2,138 NSTA wells (about 20 minutes over a remote database; skip if already loaded)"
         type: boolean
         default: true
+      assess:
+        description: "Which wells to run feasibility assessments on"
+        type: choice
+        options:
+          - with_temperature
+          - none
+          - all
+        default: with_temperature
       include_synthetic:
         description: "Also load the 20 synthetic demo wells (kept separate, flagged as synthetic)"
         type: boolean
@@ -27,7 +36,10 @@ permissions:
 jobs:
   load:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Every database round trip crosses the internet, so imports and full
+    # assessments are far slower here than on a laptop (about 20 minutes for the
+    # wells, about 1.5 hours to assess all of them).
+    timeout-minutes: 150
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
@@ -65,6 +77,7 @@ jobs:
         run: python -m scripts.cli init --migrate
 
       - name: Load real NSTA wells
+        if: ${{ inputs.load_wells }}
         run: python -m scripts.cli ingest nsta_wells
 
       - name: Load synthetic demo data
@@ -74,6 +87,14 @@ jobs:
       - name: Create login
         run: python -m scripts.cli seed-user --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD"
 
+      # "with_temperature" covers the wells where thermal potential is known.
+      # Wells with no recorded temperature have unknown potential and can be
+      # assessed one at a time in the app, or with assess: all.
       - name: Run assessments
-        if: ${{ inputs.assess }}
-        run: python -m scripts.cli assess --email "$ADMIN_EMAIL" --exclude-mock --limit 5000
+        if: ${{ inputs.assess != 'none' }}
+        run: |
+          if [ "${{ inputs.assess }}" = "with_temperature" ]; then
+            python -m scripts.cli assess --email "$ADMIN_EMAIL" --exclude-mock --min-temperature 1 --limit 5000
+          else
+            python -m scripts.cli assess --email "$ADMIN_EMAIL" --exclude-mock --limit 5000
+          fi
