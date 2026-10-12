@@ -7,10 +7,10 @@ application runs end-to-end on a developer laptop with no external services.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 #: The checked-in development secret. Named so the production guard can
 #: compare against it by identity rather than by re-typing the string. It is a
@@ -52,7 +52,13 @@ class Settings(BaseSettings):
     secret_key: str = _DEVELOPMENT_SECRET_KEY
     jwt_algorithm: str = "HS256"
     access_token_ttl_minutes: int = 60 * 12
-    cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    # NoDecode stops pydantic-settings JSON-parsing the variable before the
+    # validator below runs; without it a plain comma-separated value (the
+    # documented format) crashes the app at startup.
+    cors_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
     # ---- AI -------------------------------------------------------------
     # When no API key is present the agent layer falls back to a deterministic
@@ -79,11 +85,32 @@ class Settings(BaseSettings):
     default_heat_price_p_per_kwh: float = 8.5
     default_discount_rate: float = 0.08
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _use_psycopg_driver(cls, v: object) -> object:
+        """Accept the URL exactly as a host provides it.
+
+        Neon, Render and Heroku-style hosts hand out ``postgres://`` or
+        ``postgresql://`` URLs, which SQLAlchemy would route to psycopg2 (not
+        installed). Rewriting the scheme here means nobody has to hand-edit a
+        connection string, which is where deployments quietly fail.
+        """
+        if isinstance(v, str):
+            for prefix in ("postgres://", "postgresql://"):
+                if v.startswith(prefix):
+                    return "postgresql+psycopg://" + v[len(prefix) :]
+        return v
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:
         if isinstance(v, str):
-            return [o.strip() for o in v.split(",") if o.strip()]
+            text = v.strip()
+            if text.startswith("["):  # JSON array form is still accepted
+                import json  # noqa: PLC0415
+
+                return [str(o).strip() for o in json.loads(text) if str(o).strip()]
+            return [o.strip() for o in text.split(",") if o.strip()]
         return v
 
     @model_validator(mode="after")

@@ -1,0 +1,27 @@
+# Render Blueprint for the API. In Render: New > Blueprint > pick this repo.
+# Render asks for the two values marked "sync: false"; everything else is set.
+services:
+  - type: web
+    name: uk-geothermal-atlas-api
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: pip install .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/admin/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: ENVIRONMENT
+        value: production
+      # The app refuses to start in production with DEBUG on or the dev secret.
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      # Comma-separated list of frontend origins allowed to call this API.
+      - key: CORS_ORIGINS
+        sync: false
