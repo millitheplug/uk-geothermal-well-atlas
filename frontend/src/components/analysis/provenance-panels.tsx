@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   BookOpen,
   ClipboardList,
+  Download,
   ExternalLink,
   Gavel,
   ScrollText,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { Badge, EpistemicBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -534,14 +536,40 @@ export function ValidationPanel({ actions }: { actions: ValidationAction[] }) {
  * gate rejects any output that asserts commercial viability or states a
  * recommendation different from the engine's.
  */
+/**
+ * Save a screening report as a markdown file.
+ *
+ * The filename carries the well name so a downloaded report stays attributable
+ * once it leaves the platform. A document that cannot be traced back to the
+ * well it assessed is one waiting to be misquoted.
+ */
+function downloadReport(markdown: string, wellName?: string | null): void {
+  const slug =
+    (wellName ?? "well")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "well";
+
+  const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `geothermal-screening-${slug}.md`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+
 export function AgentPanel({
   outputs,
   executiveSummary,
   reportMarkdown,
+  wellName,
 }: {
   outputs: Record<string, unknown> | null;
   executiveSummary: string | null;
   reportMarkdown: string | null;
+  wellName?: string | null;
 }) {
   const entries = outputs ? Object.entries(outputs) : [];
 
@@ -590,17 +618,36 @@ export function AgentPanel({
         )}
 
         {reportMarkdown && (
-          <details>
-            <summary className="cursor-pointer text-[11px] font-medium text-primary">
-              <span className="inline-flex items-center gap-1.5">
-                <ScrollText className="h-3.5 w-3.5" aria-hidden />
-                Full nineteen-section report (markdown)
-              </span>
-            </summary>
-            <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/40 p-3 font-mono text-[10px] leading-relaxed">
-              {reportMarkdown}
-            </pre>
-          </details>
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <details>
+                <summary className="cursor-pointer text-[11px] font-medium text-primary">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ScrollText className="h-3.5 w-3.5" aria-hidden />
+                    Full twenty-one section report (markdown)
+                  </span>
+                </summary>
+                <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/40 p-3 font-mono text-[10px] leading-relaxed">
+                  {reportMarkdown}
+                </pre>
+              </details>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+                onClick={() => downloadReport(reportMarkdown, wellName)}
+              >
+                <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Download .md
+              </Button>
+            </div>
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              Screening output from desk-study data. It is not a statement of
+              commercial viability, and no figure in it substitutes for
+              engineering sign-off.
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -13,7 +13,11 @@ from pydantic import ValidationError
 from app.agents.agents import FeasibilityAgent
 from app.agents.base import enforce_discipline
 from app.agents.llm import LLMError, MockProvider, get_llm_provider
-from app.agents.orchestrator import AgentOrchestrator
+from app.agents.orchestrator import (
+    AgentOrchestrator,
+    _environmental_summary,
+    _sensitivity_summary,
+)
 from app.agents.prompts import REQUIRED_REPORT_SECTIONS, system_prompt_for
 from app.agents.schemas import (
     AGENT_NAMES,
@@ -489,8 +493,11 @@ class TestPrompts:
         assert "UK onshore geothermal" in prompt
         assert "Environment Agency" in prompt
 
-    def test_nineteen_report_sections_required(self):
-        assert len(REQUIRED_REPORT_SECTIONS) == 19
+    def test_twenty_one_report_sections_required(self):
+        # Nineteen from the original spec, plus Environmental considerations
+        # and Sensitivity analysis, which the first pass folded into other
+        # sections and which are decision-relevant enough to stand alone.
+        assert len(REQUIRED_REPORT_SECTIONS) == 21
 
 
 class TestOrchestration:
@@ -521,11 +528,48 @@ class TestOrchestration:
         assert result.executive_summary
         assert result.report_markdown
 
-    def test_report_covers_all_nineteen_sections(self):
+    def test_report_covers_all_required_sections(self):
         _, _, result = self._run()
         titles = {s.title for s in result.report.sections}
         for required in REQUIRED_REPORT_SECTIONS:
             assert required in titles, required
+
+    def test_report_sections_are_in_spec_order(self):
+        _, _, result = self._run()
+        titles = [s.title.strip() for s in result.report.sections]
+        expected = [t for t in REQUIRED_REPORT_SECTIONS if t in set(titles)]
+        assert titles == expected
+
+    def test_environmental_section_names_the_screened_configuration(self):
+        """Whether the scheme abstracts groundwater is decision-relevant.
+
+        The first version read the configuration from the agent context, which
+        does not carry it at enrichment time, so the sentence never fired and
+        the section reported designations while staying silent on the one
+        environmental fact that most changes the consenting route.
+        """
+        assessment = assess_well(_good_well())
+        env = _environmental_summary(assessment, {}).lower()
+
+        if "open" in assessment.configuration:
+            assert "open-loop" in env
+        else:
+            assert "closed-loop" in env
+
+    def test_environmental_section_refuses_to_read_absence_as_clearance(self):
+        """No recorded constraint must not be reported as no constraint."""
+        assessment = assess_well(_good_well())
+        env = _environmental_summary(assessment, {}).lower()
+        assert "not a finding that no constraint applies" in env
+
+    def test_sensitivity_section_reports_assumptions_without_recalculating(self):
+        """Sensitivity must name the drivers, not fabricate a spread."""
+        assessment = assess_well(_good_well())
+        summary = _sensitivity_summary(
+            {"calculation_trace": assessment.calculation_trace.get("traces", [])}
+        )
+        assert "single scenario" in summary
+        assert "Monte Carlo simulation is not implemented" in summary
 
     def test_report_recommendation_is_deterministic(self):
         assessment = assess_well(_good_well())

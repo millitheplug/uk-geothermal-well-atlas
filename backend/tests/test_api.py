@@ -884,7 +884,7 @@ class TestAnalysis:
         assert response.status_code == 200
         assert "not a statement of commercial viability" in response.text
 
-    def test_report_covers_nineteen_sections(
+    def test_report_covers_all_required_sections(
         self, client: TestClient, project_id: str, any_well_id: str
     ):
         created = client.post(
@@ -895,10 +895,33 @@ class TestAnalysis:
         ).text
         for section in ("Executive summary", "Temperature assessment", "Geology",
                         "Well integrity", "Thermal output", "Heat demand",
-                        "CAPEX", "OPEX", "LCOH", "NPV", "IRR", "Risks",
+                        "CAPEX", "OPEX", "LCOH", "NPV", "IRR",
+                        "Environmental considerations", "Risks",
+                        "Sensitivity analysis",
                         "Regulatory considerations", "Data gaps",
                         "Validation plan", "Final recommendation"):
             assert section in report, section
+
+    def test_sensitivity_section_quotes_no_spread_it_did_not_compute(
+        self, client: TestClient, project_id: str, any_well_id: str
+    ):
+        """A single scenario cannot honestly report a sensitivity range.
+
+        The section must name the assumptions the engine used and say where the
+        comparison is actually run, rather than presenting a fabricated spread
+        as if it had been calculated here.
+        """
+        created = client.post(
+            "/api/v1/analyses", headers=self._headers(), json={"well_id": any_well_id}
+        ).json()
+        report = client.get(
+            f"/api/v1/analyses/{created['analysis_id']}/report", headers=self._headers()
+        ).text
+        start = report.index("## Sensitivity analysis")
+        end = report.find("## ", start + 5)
+        body = report[start:end if end != -1 else None]
+        assert "single scenario" in body
+        assert "Monte Carlo simulation is not implemented" in body
 
     def test_report_never_claims_viability(
         self, client: TestClient, project_id: str, any_well_id: str

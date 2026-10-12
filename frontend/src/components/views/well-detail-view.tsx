@@ -922,6 +922,7 @@ function Assessment({
             outputs={analysis.agent_outputs}
             executiveSummary={analysis.executive_summary}
             reportMarkdown={analysis.report_markdown}
+            wellName={analysis.well_name}
           />
         </TabsContent>
 

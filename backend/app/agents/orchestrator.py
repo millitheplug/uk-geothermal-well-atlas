@@ -243,6 +243,10 @@ class AgentOrchestrator:
         enriched["network_summary"] = _network_summary(enriched, assessment)
         enriched["risk_summary"] = _risk_summary(assessment)
         enriched["regulatory_summary"] = _regulatory_summary(enriched)
+        enriched["environmental_summary"] = _environmental_summary(
+            assessment, enriched
+        )
+        enriched["sensitivity_summary"] = _sensitivity_summary(enriched)
         enriched["validation_plan"] = _validation_plan(assessment, enriched)
         enriched["agent_summaries"] = {}
 
@@ -502,6 +506,125 @@ def _regulatory_summary(ctx: dict[str, Any]) -> str:
     return text
 
 
+def _environmental_summary(assessment: WellAssessment, ctx: dict[str, Any]) -> str:
+    """Environmental designations and consents recorded for the site.
+
+    Reads only the flags the regulatory step actually resolved. An absent flag
+    is reported as absent rather than as evidence that no constraint applies -
+    the distinction matters, because a screening tool that silently reports
+    "no constraints" invites someone to plan around a gap in the data.
+    """
+    named = [
+        text
+        for flag, text in (
+            ("requires_abstraction_licence", "an abstraction licence"),
+            ("requires_discharge_consent", "a discharge consent"),
+            ("is_spa", "a Site of Special Scientific Interest"),
+            ("is_conservation_area", "a conservation area"),
+            ("is_mining_subsidence_area", "a mining subsidence district"),
+        )
+        if ctx.get(flag)
+    ]
+
+    lines: list[str] = []
+    if named:
+        lines.append(
+            "Recorded environmental constraints: "
+            + ", ".join(named)
+            + ". Each must be confirmed with the relevant authority before any "
+            "works, and any of them may constrain the abstraction or discharge "
+            "regime the scheme can operate under."
+        )
+    else:
+        lines.append(
+            "No environmental designation and no abstraction or discharge consent "
+            "is recorded at this location. This reflects the data held, not a "
+            "finding that no constraint applies; a constraints search is required "
+            "before any drilling or abstraction is planned."
+        )
+
+    configuration = str(assessment.configuration or "")
+    if "open" in configuration:
+        lines.append(
+            "The screened configuration is open-loop, so it would abstract and "
+            "return groundwater. Fluid chemistry therefore governs corrosion and "
+            "scaling risk, and any discharge falls within the consented regime "
+            "above."
+        )
+    elif "closed" in configuration:
+        lines.append(
+            "The screened configuration is closed-loop, so it would not abstract "
+            "or discharge groundwater. That removes the abstraction and discharge "
+            "consenting route, but not the drilling, fluid disposal, land-take or "
+            "planning consents."
+        )
+
+    risks = ctx.get("risk") or {}
+    environmental = [
+        r
+        for r in (risks.get("risks") or [])
+        if str(r.get("category", "")).lower() in {"groundwater", "environment"}
+    ]
+    if environmental:
+        lines.append(
+            "Environmental risks carried in the register: "
+            + "; ".join(str(r.get("title", "untitled")).lower() for r in environmental)
+            + "."
+        )
+
+    return " ".join(lines)
+
+
+def _sensitivity_summary(ctx: dict[str, Any]) -> str:
+    """Name the inputs the result is most exposed to, without re-running them.
+
+    A single assessment evaluates one scenario against one set of inputs, so
+    there is nothing here to compare against. Rather than manufacture a spread,
+    this reports the default assumptions the engine actually recorded - by
+    definition the values a sensitivity study would vary - and points at where
+    the comparison is genuinely run. No recalculation happens in this function.
+    """
+    drivers: dict[str, tuple[Any, str, bool]] = {}
+    for trace in ctx.get("calculation_trace") or []:
+        for assumption in trace.get("assumptions") or []:
+            key = assumption.get("key")
+            if not key or key in drivers:
+                continue
+            drivers[key] = (
+                assumption.get("value"),
+                assumption.get("rationale") or "",
+                bool(assumption.get("is_default")),
+            )
+
+    lines: list[str] = []
+    if drivers:
+        defaults = sum(1 for _, _, is_default in drivers.values() if is_default)
+        lines.append(
+            f"{len(drivers)} distinct assumption(s) entered the calculation, "
+            f"{defaults} of them library defaults rather than site-specific "
+            "values. These are the inputs a sensitivity study should vary, in "
+            "descending order of how far the result would move:"
+        )
+        for key, (value, rationale, is_default) in sorted(drivers.items()):
+            origin = "default" if is_default else "supplied"
+            suffix = f" - {rationale}" if rationale else ""
+            lines.append(f"- {key} = {value} ({origin}){suffix}")
+    else:
+        lines.append(
+            "No assumptions were recorded against this calculation, so the result "
+            "is driven by the measured inputs alone."
+        )
+
+    lines.append(
+        "No spread is quoted here: this assessment ran a single scenario, and "
+        "varying an input and reporting the difference would be a second "
+        "calculation rather than an interpretation. Bear, base and bull "
+        "comparison is available from the scenarios endpoint for this well, and "
+        "Monte Carlo simulation is not implemented."
+    )
+    return "\n".join(lines)
+
+
 def _validation_plan(assessment: WellAssessment, ctx: dict[str, Any]) -> str:
     steps = [
         f"1. {assessment.next_action}",
@@ -570,8 +693,14 @@ def _deterministic_section(title: str, ctx: dict[str, Any]) -> str:
         "LCOH": lambda: fmt("lcoh_p_per_kwh", " p/kWh", "Levelised cost of heat: "),
         "NPV": lambda: fmt("npv_gbp", " GBP", "Net present value: "),
         "IRR": lambda: fmt("irr_pct", "%", "Internal rate of return: "),
+        "Environmental considerations": lambda: (
+            ctx.get("environmental_summary") or "Not available."
+        ),
         "Risks": lambda: ctx.get("risk_summary") or "Not available.",
         "Regulatory considerations": lambda: ctx.get("regulatory_summary") or "Not available.",
+        "Sensitivity analysis": lambda: (
+            ctx.get("sensitivity_summary") or "Not available."
+        ),
         "Data gaps": lambda: (
             "\n".join(f"- {g}" for g in ctx.get("data_gaps") or [])
             or "No material data gaps recorded."
