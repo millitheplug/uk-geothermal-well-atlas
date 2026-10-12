@@ -29,6 +29,7 @@ from app.data_import.adapters.mock_wells import (
     MockWellAdapter,
     recompute_all_temperatures,
 )
+from app.data_import.adapters.nsta_wells import NstaOnshoreWellAdapter
 from app.data_import.base import Adapter, ImportResult
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,10 @@ ADAPTERS: dict[str, type[Adapter]] = {
     "mock_heat_networks": MockHeatNetworkAdapter,
     "mock_energy_prices": MockEnergyPriceAdapter,
     "mock_regulatory": MockRegulatoryAdapter,
+    # Real data. Deliberately absent from BOOTSTRAP_ORDER: real records are
+    # loaded only on request (`cli ingest nsta_wells`), never as a side effect
+    # of seeding the synthetic development set.
+    "nsta_wells": NstaOnshoreWellAdapter,
 }
 
 #: Default order for a full bootstrap.

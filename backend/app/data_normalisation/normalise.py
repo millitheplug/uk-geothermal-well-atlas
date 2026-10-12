@@ -150,6 +150,10 @@ TEMPERATURE_METHOD_MAP: dict[str, tuple[str, str]] = {
     "production_log": (DataConfidence.MEDIUM.value, EpistemicStatus.MEASURED.value),
     "dts": (DataConfidence.MEDIUM.value, EpistemicStatus.MEASURED.value),
     "dts_reprocessed": (DataConfidence.MEDIUM.value, EpistemicStatus.MEASURED.value),
+    # NSTA onshore "hole temperature - maximum": a real reading, but the dataset
+    # does not say whether it is stabilised or an uncorrected drilling BHT, so it
+    # is trusted less than a dynamic log of known type.
+    "nsta_max_hole_temperature": (DataConfidence.LOW.value, EpistemicStatus.MEASURED.value),
     "gamma": (DataConfidence.LOW.value, EpistemicStatus.ESTIMATE.value),
     "regional_estimate": (DataConfidence.VERY_LOW.value, EpistemicStatus.ESTIMATE.value),
     "estimate": (DataConfidence.VERY_LOW.value, EpistemicStatus.ESTIMATE.value),

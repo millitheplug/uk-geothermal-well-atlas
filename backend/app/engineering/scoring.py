@@ -713,6 +713,7 @@ def recommend(
     feasibility_score: float,
     confidence_score: float,
     critical_risk_count: int = 0,
+    critical_integrity_risk: bool = False,
     data_gap_count: int = 0,
     lcoh_p_per_kwh: float | None = None,
     heat_price_p_per_kwh: float | None = None,
@@ -725,6 +726,12 @@ def recommend(
     Confidence gates the result: a high score on weak evidence is downgraded,
     because the sensible next step for an exciting but unmeasured well is to
     measure it, not to commit to it.
+
+    A critical well-integrity risk is a hard gate, not a weight. However high
+    the composite score, a well whose bore may be sealed, collapsed or
+    unrecoverable cannot be ranked above LOW PRIORITY until that risk is
+    retired by inspection, because no other component can compensate for a
+    well that cannot be re-entered.
     """
     reasons: list[str] = []
 
@@ -767,6 +774,22 @@ def recommend(
             "The well does not present a defensible case for geothermal reuse on the "
             "evidence available. Pursuing it would consume budget better spent "
             "elsewhere."
+        )
+
+    if critical_integrity_risk and recommendation in (
+        Recommendation.HIGH_PRIORITY,
+        Recommendation.MEDIUM_PRIORITY,
+    ):
+        recommendation = Recommendation.LOW_PRIORITY
+        reasons.append(
+            "A critical well-integrity risk is open. Integrity is a hard gate, so "
+            "the recommendation is capped at LOW PRIORITY regardless of the "
+            "feasibility score until the wellbore is inspected and the risk retired."
+        )
+    elif critical_integrity_risk:
+        reasons.append(
+            "A critical well-integrity risk is open and must be retired by "
+            "inspection before this well could be progressed."
         )
 
     if lcoh_p_per_kwh is not None and heat_price_p_per_kwh:
