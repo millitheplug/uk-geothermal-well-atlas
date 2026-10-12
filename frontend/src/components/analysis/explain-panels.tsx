@@ -93,14 +93,14 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
 
           return (
             <div key={name}>
-              <div className="flex items-baseline justify-between gap-2 text-[11px]">
+              <div className="flex items-baseline justify-between gap-2 text-xs">
                 <span className="flex items-center gap-1.5">
                   {COMPONENT_LABELS[name]}
-                  <span className="font-mono text-[10px] text-muted-foreground">
+                  <span className="font-mono text-[12px] text-muted-foreground">
                     ×{weight.toFixed(2)}
                   </span>
                   {isConfidence && (
-                    <Badge variant="muted" className="text-[9px]">
+                    <Badge variant="muted" className="text-[11px]">
                       evidence
                     </Badge>
                   )}
@@ -143,7 +143,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
         <button
           type="button"
           onClick={() => setShowAll((value) => !value)}
-          className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+          className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
           {showAll ? (
             <ChevronUp className="h-3 w-3" aria-hidden />
@@ -156,7 +156,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
         {showAll && (
           <div className="space-y-2 rounded-md bg-muted/50 p-2.5">
             {result.warnings.length > 0 ? (
-              <ul className="space-y-1 text-[11px] leading-relaxed text-muted-foreground">
+              <ul className="space-y-1 text-xs leading-relaxed text-muted-foreground">
                 {result.warnings.map((warning, index) => (
                   <li key={index} className="flex gap-1.5">
                     <span aria-hidden>·</span>
@@ -165,7 +165,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
                 ))}
               </ul>
             ) : (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 The engine raised no warnings on this run. The calculation trace
                 below records the inputs and assumptions behind every figure
                 regardless.
@@ -175,7 +175,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
             {result.data_gaps.length > 0 && (
               <div>
                 <SectionTitle>Data gaps that limit this result</SectionTitle>
-                <ul className="mt-1 space-y-1 text-[11px] leading-relaxed text-muted-foreground">
+                <ul className="mt-1 space-y-1 text-xs leading-relaxed text-muted-foreground">
                   {result.data_gaps.map((gap, index) => (
                     <li key={index} className="flex gap-1.5">
                       <span aria-hidden>·</span>
@@ -189,7 +189,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
             {result.unknowns.length > 0 && (
               <div>
                 <SectionTitle>Values that are unknown, not zero</SectionTitle>
-                <ul className="mt-1 space-y-1 text-[11px] leading-relaxed text-muted-foreground">
+                <ul className="mt-1 space-y-1 text-xs leading-relaxed text-muted-foreground">
                   {result.unknowns.map((item, index) => (
                     <li key={index} className="flex gap-1.5">
                       <span aria-hidden>·</span>
@@ -228,7 +228,7 @@ export function ConfidencePanel({
         <CardDescription>{meta.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           Confidence describes the <em>evidence</em>, not the resource. It is
           reported separately from the feasibility score and is deliberately not
           folded into it: a well with an excellent score and no measurements is
@@ -241,7 +241,7 @@ export function ConfidencePanel({
             <SectionTitle>Axes</SectionTitle>
             {axes.map(([axis, detail_]) => (
               <div key={axis}>
-                <div className="flex items-baseline justify-between text-[11px]">
+                <div className="flex items-baseline justify-between text-xs">
                   <span className="capitalize">{axis.replace(/_/g, " ")}</span>
                   <span className="tabular">
                     {Math.round(detail_.score * 100)}%
@@ -253,7 +253,7 @@ export function ConfidencePanel({
                 </div>
                 <Progress value={detail_.score * 100} className="mt-0.5 h-1.5" />
                 {detail_.notes.length > 0 && (
-                  <ul className="mt-0.5 space-y-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                  <ul className="mt-0.5 space-y-0.5 text-[12px] leading-relaxed text-muted-foreground">
                     {detail_.notes.map((note, index) => (
                       <li key={index}>· {note}</li>
                     ))}
@@ -266,11 +266,11 @@ export function ConfidencePanel({
 
         {detail && detail.conflicting_sources.length > 0 && (
           <div className="rounded-md border border-priority-medium/40 bg-priority-medium/5 p-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-priority-medium">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-priority-medium">
               <ShieldAlert className="h-3.5 w-3.5" aria-hidden />
               Sources disagree
             </p>
-            <ul className="mt-1 space-y-0.5 text-[11px] leading-relaxed">
+            <ul className="mt-1 space-y-0.5 text-xs leading-relaxed">
               {detail.conflicting_sources.map((item, index) => (
                 <li key={index}>· {item}</li>
               ))}
@@ -280,11 +280,11 @@ export function ConfidencePanel({
 
         {detail && detail.unknowns.length > 0 && (
           <div className="rounded-md border border-epistemic-unknown/40 bg-epistemic-unknown/5 p-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-epistemic-unknown">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-epistemic-unknown">
               <ShieldQuestion className="h-3.5 w-3.5" aria-hidden />
               Unknowns carried into the assessment
             </p>
-            <ul className="mt-1 space-y-0.5 text-[11px] leading-relaxed">
+            <ul className="mt-1 space-y-0.5 text-xs leading-relaxed">
               {detail.unknowns.map((item, index) => (
                 <li key={index}>· {item}</li>
               ))}
@@ -293,7 +293,7 @@ export function ConfidencePanel({
         )}
 
         {detail && (
-          <p className="font-mono text-[10px] text-muted-foreground">
+          <p className="font-mono text-[12px] text-muted-foreground">
             confidence v{detail.confidence_version}
           </p>
         )}
@@ -353,14 +353,14 @@ export function RiskPanel({ risk }: { risk: RiskAssessment | null }) {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-medium">{item.title}</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                       {item.description}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <Badge
                       className={cn(
-                        "text-[9px]",
+                        "text-[11px]",
                         severityIndex >= 3
                           ? "border-destructive/40 bg-destructive/10 text-destructive"
                           : severityIndex === 2
@@ -372,13 +372,13 @@ export function RiskPanel({ risk }: { risk: RiskAssessment | null }) {
                     >
                       {item.severity}
                     </Badge>
-                    <span className="tabular text-[11px] font-medium">
+                    <span className="tabular text-xs font-medium">
                       {item.uncertainty_adjusted_score.toFixed(1)}
                     </span>
                   </div>
                 </div>
 
-                <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-muted-foreground">
+                <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[12px] text-muted-foreground">
                   <span>
                     Category: {RISK_LABELS[item.category] ?? item.category}
                   </span>
@@ -390,19 +390,19 @@ export function RiskPanel({ risk }: { risk: RiskAssessment | null }) {
                 </dl>
 
                 {item.evidence.length > 0 && (
-                  <ul className="mt-1 space-y-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                  <ul className="mt-1 space-y-0.5 text-[12px] leading-relaxed text-muted-foreground">
                     {item.evidence.map((line, index) => (
                       <li key={index}>Evidence: {line}</li>
                     ))}
                   </ul>
                 )}
                 {item.mitigation && (
-                  <p className="mt-1 text-[10px] leading-relaxed text-primary">
+                  <p className="mt-1 text-[12px] leading-relaxed text-primary">
                     Mitigation: {item.mitigation}
                   </p>
                 )}
                 {item.addresses_data_gap && showResolved && (
-                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
                     Resolves data gap: {item.addresses_data_gap}
                   </p>
                 )}
@@ -414,7 +414,7 @@ export function RiskPanel({ risk }: { risk: RiskAssessment | null }) {
         <button
           type="button"
           onClick={() => setShowResolved((value) => !value)}
-          className="mt-2 flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+          className="mt-2 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
           {showResolved ? (
             <ChevronUp className="h-3 w-3" aria-hidden />
@@ -435,8 +435,8 @@ export function DecisionStrip({ result }: { result: AnalysisResult }) {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <Card className="sm:col-span-1">
-        <CardContent className="p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <CardContent className="p-4">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             Feasibility
           </div>
           <div className="tabular mt-1 text-3xl font-semibold leading-none">
@@ -448,15 +448,15 @@ export function DecisionStrip({ result }: { result: AnalysisResult }) {
               {result.recommendation}
             </Badge>
           </div>
-          <p className="mt-1.5 text-[10px] italic text-muted-foreground">
+          <p className="mt-1.5 text-[12px] italic text-muted-foreground">
             {recommendation.tone}
           </p>
         </CardContent>
       </Card>
 
       <Card className="sm:col-span-1">
-        <CardContent className="p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <CardContent className="p-4">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             Evidence confidence
           </div>
           <div className="tabular mt-1 text-3xl font-semibold leading-none">
@@ -464,19 +464,19 @@ export function DecisionStrip({ result }: { result: AnalysisResult }) {
             <span className="text-sm font-normal text-muted-foreground">%</span>
           </div>
           <div className="mt-2">
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-[12px]">
               {CONFIDENCE_META[result.confidence_band].label}
             </Badge>
           </div>
-          <p className="mt-1.5 text-[10px] italic text-muted-foreground">
+          <p className="mt-1.5 text-[12px] italic text-muted-foreground">
             Measures the evidence, not the resource.
           </p>
         </CardContent>
       </Card>
 
       <Card className="sm:col-span-1">
-        <CardContent className="p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <CardContent className="p-4">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             Thermal output
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
@@ -492,12 +492,12 @@ export function DecisionStrip({ result }: { result: AnalysisResult }) {
           </div>
           {result.thermal_output_low_kw !== null &&
             result.thermal_output_high_kw !== null && (
-              <p className="mt-1 text-[10px] text-muted-foreground">
+              <p className="mt-1 text-[12px] text-muted-foreground">
                 Range {result.thermal_output_low_kw.toFixed(0)}–
                 {result.thermal_output_high_kw.toFixed(0)} kWth
               </p>
             )}
-          <p className="mt-1.5 flex items-start gap-1 text-[10px] italic text-muted-foreground">
+          <p className="mt-1.5 flex items-start gap-1 text-[12px] italic text-muted-foreground">
             <Info className="mt-0.5 h-2.5 w-2.5 shrink-0" aria-hidden />
             Scales linearly with flow rate; no flow test has been performed
             unless the status reads measured.
@@ -513,7 +513,7 @@ export function AssuranceFooter() {
   return (
     <div className="space-y-2">
       <EvidenceDisclaimer />
-      <p className="flex items-start gap-1.5 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="flex items-start gap-1.5 text-[12px] leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
         The composite score, the recommendation and every figure above were
         computed by the deterministic Python engine. The eleven analysis agents

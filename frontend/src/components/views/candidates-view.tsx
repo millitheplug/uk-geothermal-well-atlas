@@ -2,9 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Download, Info } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Info,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { cn } from "@/lib/utils";
 import {
   EmptyState,
   ErrorState,
@@ -80,6 +89,11 @@ export function CandidatesView() {
   const [maxDistance, setMaxDistance] = React.useState("");
   const [recommendation, setRecommendation] = React.useState<string[]>([]);
   const [includeMock, setIncludeMock] = React.useState(true);
+  // Below md the filters fold away so the results are the first thing shown.
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
+  const activeFilters =
+    [minScore, minTemperature, maxDistance].filter((value) => value !== "").length +
+    recommendation.length;
 
   const params = React.useMemo(
     () => ({
@@ -124,8 +138,35 @@ export function CandidatesView() {
         }
       />
 
-      <div className="shrink-0 border-b bg-card/50 px-3 py-2.5">
-        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="shrink-0 border-b bg-card/60 px-4 py-2 sm:px-6 md:py-4 lg:px-8">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((open) => !open)}
+          aria-expanded={filtersOpen}
+          aria-controls="candidate-filters"
+          className="flex min-h-10 w-full items-center justify-between text-sm font-medium md:hidden"
+        >
+          <span className="inline-flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" aria-hidden />
+            Filters
+            {activeFilters > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-foreground">
+                {activeFilters}
+              </span>
+            )}
+          </span>
+          <ChevronDown
+            className={cn("h-4 w-4 transition-transform", filtersOpen && "rotate-180")}
+            aria-hidden
+          />
+        </button>
+        <div
+          id="candidate-filters"
+          className={cn(
+            "mt-3 gap-x-4 gap-y-3.5 sm:grid-cols-2 md:mt-0 lg:grid-cols-4",
+            filtersOpen ? "grid" : "hidden md:grid",
+          )}
+        >
           <LabeledInput
             label="Min score"
             type="number"
@@ -158,11 +199,11 @@ export function CandidatesView() {
             }}
             placeholder="e.g. 2000"
           />
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="sm:col-span-2 lg:col-span-4">
+            <div className="text-xs font-medium text-muted-foreground">
               Recommendation
             </div>
-            <div className="mt-1 flex flex-wrap gap-1">
+            <div className="mt-1.5 flex flex-wrap gap-2">
               {Object.keys(RECOMMENDATION_META).map((level) => {
                 const active = recommendation.includes(level);
                 return (
@@ -178,7 +219,7 @@ export function CandidatesView() {
                       );
                       setOffset(0);
                     }}
-                    className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+                    className={`min-h-9 rounded-full border px-3.5 py-1 text-xs transition-colors md:min-h-0 md:py-1 ${
                       active
                         ? "border-primary bg-primary/10 font-medium text-primary"
                         : "border-border text-muted-foreground hover:bg-muted"
@@ -190,19 +231,19 @@ export function CandidatesView() {
               })}
             </div>
           </div>
-          <label className="flex items-end gap-2 text-[11px]">
+          <label className="flex min-h-10 items-center gap-2.5 text-sm sm:col-span-2 lg:col-span-1 lg:self-end">
             <input
               type="checkbox"
               checked={includeMock}
               onChange={(event) => setIncludeMock(event.target.checked)}
-              className="h-3.5 w-3.5 rounded border-input"
+              className="h-4 w-4 rounded border-input accent-primary"
             />
             Include synthetic wells
           </label>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6 lg:px-8">
         {error && (
           <ErrorState
             title="The candidate table could not be loaded"
@@ -224,14 +265,20 @@ export function CandidatesView() {
                 message="Widen the filters, or check that assessments have been run. A well only appears in the ranking once the engineering pipeline has scored it."
               />
             ) : (
-              <Card className="overflow-hidden">
+              <>
+              <Card className="hidden overflow-hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       {COLUMNS.map((column) => (
                         <TableHead
                           key={column.key}
-                          className={column.align === "right" ? "text-right" : undefined}
+                          className={cn(
+                            column.align === "right" && "text-right",
+                            // Region is "Not recorded" for most wells, so it
+                            // gives way to the figures on all but very wide screens.
+                            column.key === "region" && "hidden 2xl:table-cell",
+                          )}
                           title={column.note}
                         >
                           {column.order_by ? (
@@ -264,9 +311,15 @@ export function CandidatesView() {
                   </TableBody>
                 </Table>
               </Card>
+              <ul className="space-y-3 md:hidden" aria-label="Candidates">
+                {data.items.map((row) => (
+                  <CandidateCard key={row.well_id} row={row} />
+                ))}
+              </ul>
+              </>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
               <span>
                 Showing {data.offset + 1}–
                 {Math.min(data.offset + data.items.length, data.total)} of{" "}
@@ -295,7 +348,7 @@ export function CandidatesView() {
               </div>
             </div>
 
-            <div className="flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-[11px] leading-relaxed text-muted-foreground">
+            <div className="flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
               <p>
                 The score column is the weighted sum produced by the Python
@@ -322,76 +375,76 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
 
   return (
     <TableRow className={row.is_mock ? "bg-destructive/[0.03]" : undefined}>
-      <TableCell className="text-right text-muted-foreground">{row.rank}</TableCell>
-      <TableCell>
+      <TableCell className="whitespace-nowrap text-right text-muted-foreground">{row.rank}</TableCell>
+      <TableCell className="min-w-[10.5rem]">
         <Link
           href={`/wells/${row.well_id}`}
           className="font-medium hover:text-primary hover:underline"
         >
           {row.well_name}
         </Link>
-        <div className="font-mono text-[10px] text-muted-foreground">
+        <div className="font-mono text-[12px] text-muted-foreground">
           {row.well_id}
         </div>
       </TableCell>
-      <TableCell className="text-muted-foreground">
+      <TableCell className="hidden min-w-[7.5rem] text-muted-foreground 2xl:table-cell">
         {row.region ?? <span className="italic">Not recorded</span>}
       </TableCell>
       <TableCell>
-        <span className="text-[11px]">
+        <span className="text-xs">
           {WELL_STATUS_LABELS[row.status] ?? humanise(row.status)}
         </span>
       </TableCell>
-      <TableCell className="text-right">{fmtDepth(row.total_depth_m)}</TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">{fmtDepth(row.total_depth_m)}</TableCell>
+      <TableCell className="whitespace-nowrap text-right">
         <span className="inline-flex items-center gap-1">
           {row.temperature_c !== null ? (
             <>
               <span>{row.temperature_c.toFixed(1)}</span>
-              <span className="text-[10px] text-muted-foreground">°C</span>
+              <span className="text-[12px] text-muted-foreground">°C</span>
               <EpistemicBadge status={row.temperature_status} />
             </>
           ) : (
-            <span className="text-[11px] italic text-muted-foreground">
+            <span className="text-xs italic text-muted-foreground">
               Not available
             </span>
           )}
         </span>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         <span className="inline-flex items-center gap-1">
           {row.thermal_output_kw !== null ? (
             <>
               <span>{row.thermal_output_kw.toFixed(0)}</span>
-              <span className="text-[10px] text-muted-foreground">kW</span>
+              <span className="text-[12px] text-muted-foreground">kW</span>
               <EpistemicBadge status={row.thermal_output_status} />
             </>
           ) : (
-            <span className="text-[11px] italic text-muted-foreground">
+            <span className="text-xs italic text-muted-foreground">
               Not available
             </span>
           )}
         </span>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.nearest_building_distance_m !== null
           ? `${Math.round(row.nearest_building_distance_m).toLocaleString("en-GB")} m`
           : <Missing />}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.annual_demand_kwh !== null
           ? `${(row.annual_demand_kwh / 1000).toFixed(0)} MWh`
           : <Missing />}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.capex_gbp !== null ? fmtGBP(row.capex_gbp) : <Missing />}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.lcoh_p_per_kwh !== null
           ? `${row.lcoh_p_per_kwh.toFixed(1)}p`
           : <Missing />}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.feasibility_score !== null ? (
           <span className="inline-flex items-center gap-1.5">
             <span
@@ -404,10 +457,10 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
           <Missing />
         )}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="whitespace-nowrap text-right">
         {row.confidence_score !== null ? (
           <span
-            className="text-[11px]"
+            className="text-xs"
             title={confidence?.description}
           >
             {Math.round(row.confidence_score * 100)}%
@@ -418,7 +471,7 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
       </TableCell>
       <TableCell>
         {recommendation ? (
-          <Badge className={`${recommendation.className} text-[9px]`}>
+          <Badge className={`${recommendation.className} text-[11px]`}>
             {row.recommendation}
           </Badge>
         ) : (
@@ -436,9 +489,133 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
   );
 }
 
+/**
+ * One candidate as a card, shown below the `md` breakpoint where a 14-column
+ * table cannot be read. It draws on the same row and the same provenance
+ * badges as the table; only the arrangement differs.
+ */
+function CandidateCard({ row }: { row: CandidateRow }) {
+  const band = scoreBand(row.feasibility_score);
+  const recommendation = row.recommendation
+    ? RECOMMENDATION_META[row.recommendation]
+    : null;
+
+  const facts: Array<{ label: string; value: React.ReactNode }> = [
+    { label: "Depth", value: fmtDepth(row.total_depth_m) },
+    {
+      label: "Temperature",
+      value:
+        row.temperature_c !== null ? (
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <span>{row.temperature_c.toFixed(1)} °C</span>
+            <EpistemicBadge status={row.temperature_status} />
+          </span>
+        ) : (
+          <Missing />
+        ),
+    },
+    {
+      label: "Thermal output",
+      value:
+        row.thermal_output_kw !== null ? (
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <span>{row.thermal_output_kw.toFixed(0)} kW</span>
+            <EpistemicBadge status={row.thermal_output_status} />
+          </span>
+        ) : (
+          <Missing />
+        ),
+    },
+    {
+      label: "To demand",
+      value:
+        row.nearest_building_distance_m !== null ? (
+          `${Math.round(row.nearest_building_distance_m).toLocaleString("en-GB")} m`
+        ) : (
+          <Missing />
+        ),
+    },
+    {
+      label: "CAPEX",
+      value: row.capex_gbp !== null ? fmtGBP(row.capex_gbp) : <Missing />,
+    },
+    {
+      label: "LCOH",
+      value:
+        row.lcoh_p_per_kwh !== null ? (
+          `${row.lcoh_p_per_kwh.toFixed(1)}p`
+        ) : (
+          <Missing />
+        ),
+    },
+  ];
+
+  return (
+    <li
+      className={`relative rounded-lg border bg-card p-4 ${
+        row.is_mock ? "border-destructive/30 bg-destructive/[0.03]" : ""
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <span className="font-display w-8 shrink-0 text-[1.75rem] text-muted-foreground">
+          {row.rank}
+        </span>
+        <div className="min-w-0 flex-1">
+          {/* Stretched link: the whole card opens the well. */}
+          <Link
+            href={`/wells/${row.well_id}`}
+            className="block truncate font-semibold after:absolute after:inset-0 after:content-['']"
+          >
+            {row.well_name}
+          </Link>
+          <div className="truncate font-mono text-xs text-muted-foreground">
+            {row.well_id}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {WELL_STATUS_LABELS[row.status] ?? humanise(row.status)}
+            {row.region ? ` · ${row.region}` : ""}
+          </div>
+        </div>
+        {row.feasibility_score !== null && (
+          <span
+            className={`inline-flex h-8 min-w-[2.75rem] shrink-0 items-center justify-center rounded px-2 text-base font-semibold text-white ${band.className}`}
+            title="Feasibility score"
+          >
+            {Math.round(row.feasibility_score)}
+          </span>
+        )}
+      </div>
+
+      <dl className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3.5 text-sm">
+        {facts.map((fact) => (
+          <div key={fact.label} className="min-w-0">
+            <dt className="text-xs text-muted-foreground">{fact.label}</dt>
+            <dd className="mt-0.5">{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-3.5 flex flex-wrap items-center gap-2">
+        {recommendation ? (
+          <Badge className={`${recommendation.className} text-[11px]`}>
+            {row.recommendation}
+          </Badge>
+        ) : (
+          <Missing />
+        )}
+        {row.confidence_score !== null && (
+          <span className="text-xs text-muted-foreground">
+            Evidence confidence {Math.round(row.confidence_score * 100)}%
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
+
 function Missing() {
   return (
-    <span className="text-[11px] italic text-muted-foreground">Not available</span>
+    <span className="text-xs italic text-muted-foreground">Not available</span>
   );
 }
 
@@ -454,14 +631,12 @@ function LabeledInput({
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
       <Input
         {...props}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-1 h-8 text-xs"
+        className="mt-1.5"
       />
     </div>
   );

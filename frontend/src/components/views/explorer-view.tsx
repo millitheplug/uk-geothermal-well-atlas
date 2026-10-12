@@ -3,12 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Eye,
   EyeOff,
   Map as MapIcon,
   Search,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
 
@@ -32,7 +34,7 @@ import {
   humanise,
   scoreBand,
 } from "@/lib/domain";
-import { fmtDepth } from "@/lib/utils";
+import { cn, fmtDepth } from "@/lib/utils";
 import type { WellSearchResponse } from "@/types/api";
 
 /**
@@ -53,6 +55,8 @@ export function ExplorerView() {
   const [offset, setOffset] = React.useState(0);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [showMap, setShowMap] = React.useState(true);
+  // Below md the facet filters fold away so the results stay on screen.
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const [includeMock, setIncludeMock] = React.useState(true);
 
   const pageSize = 100;
@@ -115,6 +119,7 @@ export function ExplorerView() {
           <Button
             variant="outline"
             size="sm"
+            className="hidden lg:inline-flex"
             onClick={() => setShowMap((value) => !value)}
           >
             {showMap ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
@@ -124,11 +129,11 @@ export function ExplorerView() {
       />
 
       {/* Filters */}
-      <div className="shrink-0 space-y-2.5 border-b bg-card/50 px-3 py-2.5">
+      <div className="shrink-0 space-y-2.5 border-b bg-card/60 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[15rem] flex-1 sm:max-w-sm">
+          <div className="relative min-w-[12rem] flex-1 sm:max-w-md">
             <Search
-              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden
             />
             <Input
@@ -138,17 +143,38 @@ export function ExplorerView() {
                 setOffset(0);
               }}
               placeholder="Well name, ID, operator, licence or formation"
-              className="h-8 pl-8 text-xs"
+              className="pl-9"
               aria-label="Search wells"
             />
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            className="md:hidden"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            aria-controls="explorer-facets"
+          >
+            <SlidersHorizontal aria-hidden />
+            Filters
+            {activeCount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-foreground">
+                {activeCount}
+              </span>
+            )}
+            <ChevronDown
+              className={cn("transition-transform", filtersOpen && "rotate-180")}
+              aria-hidden
+            />
+          </Button>
           {activeCount > 0 && (
             <Button variant="ghost" size="xs" onClick={clearAll}>
               <X className="h-3 w-3" aria-hidden />
               Clear {activeCount} filter{activeCount === 1 ? "" : "s"}
             </Button>
           )}
-          <label className="ml-auto flex items-center gap-1.5 text-[11px]">
+          <label className="flex min-h-9 items-center gap-2 text-sm md:ml-auto md:min-h-0 md:text-xs">
             <input
               type="checkbox"
               checked={includeMock}
@@ -156,13 +182,17 @@ export function ExplorerView() {
                 setIncludeMock(event.target.checked);
                 setOffset(0);
               }}
-              className="h-3.5 w-3.5 rounded border-input"
+              className="h-4 w-4 rounded border-input accent-primary"
             />
             Include synthetic wells
           </label>
         </div>
 
-        <div className="grid gap-2 lg:grid-cols-4">
+        <div
+          id="explorer-facets"
+          className={cn("space-y-3 md:space-y-2.5", filtersOpen ? "block" : "hidden md:block")}
+        >
+        <div className="grid gap-3 md:gap-2 lg:grid-cols-4">
           <FacetRow
             label="Status"
             options={(facets.data?.statuses ?? []).map((value) => ({
@@ -210,8 +240,8 @@ export function ExplorerView() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-[11px]">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-sm md:text-xs">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-muted-foreground">Temperature record</span>
             {(["any", "yes", "no"] as const).map((option) => (
               <button
@@ -222,7 +252,7 @@ export function ExplorerView() {
                   setHasTemperature(option);
                   setOffset(0);
                 }}
-                className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                className={`min-h-8 rounded-full border px-3 py-1 text-xs md:min-h-0 md:px-2 md:py-0.5 ${
                   hasTemperature === option
                     ? "border-primary bg-primary/10 font-medium text-primary"
                     : "border-border text-muted-foreground hover:bg-muted"
@@ -242,14 +272,15 @@ export function ExplorerView() {
                 setMaxDistance(event.target.value);
                 setOffset(0);
               }}
-              className="h-7 w-24 text-xs"
+              className="h-9 w-28 md:h-8 md:w-24"
             />
           </label>
+        </div>
         </div>
       </div>
 
       {/* Results */}
-      <div className={showMap ? "grid min-h-0 flex-1 lg:grid-cols-[1fr_1fr]" : "flex min-h-0 flex-1 flex-col"}>
+      <div className={cn("min-h-[26rem] lg:min-h-0", showMap ? "grid flex-1 lg:grid-cols-[1fr_1fr]" : "flex flex-1 flex-col")}>
         <div className="min-h-0 overflow-auto">
           {wells.loading && !wells.data && <Loading label="Searching the inventory" />}
 
@@ -283,7 +314,7 @@ export function ExplorerView() {
                       }`}
                     >
                       <span
-                        className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-[11px] font-semibold ${band.className}`}
+                        className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-xs font-semibold ${band.className}`}
                       >
                         {well.feasibility_score !== null
                           ? Math.round(well.feasibility_score)
@@ -294,16 +325,16 @@ export function ExplorerView() {
                           <span className="truncate text-xs font-medium">
                             {well.well_name}
                           </span>
-                          <span className="font-mono text-[10px] text-muted-foreground">
+                          <span className="font-mono text-[12px] text-muted-foreground">
                             {well.well_id}
                           </span>
                           {well.is_mock && (
-                            <Badge className="mock-badge text-[9px]" variant="outline">
+                            <Badge className="mock-badge text-[11px]" variant="outline">
                               synthetic
                             </Badge>
                           )}
                         </span>
-                        <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                           <span>
                             {WELL_STATUS_LABELS[well.status] ?? humanise(well.status)}
                           </span>
@@ -327,7 +358,7 @@ export function ExplorerView() {
                         </span>
                       </span>
                       {well.recommendation && (
-                        <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">
                           {well.recommendation}
                         </span>
                       )}
@@ -339,13 +370,13 @@ export function ExplorerView() {
           )}
 
           {wells.data && (
-            <div className="sticky bottom-0 flex items-center justify-between gap-2 border-t bg-card px-3 py-2 text-[11px] text-muted-foreground">
+            <div className="sticky bottom-0 flex items-center justify-between gap-2 border-t bg-card px-3 py-2 text-xs text-muted-foreground">
               <span>
                 {wells.data.offset + 1}–
                 {Math.min(wells.data.offset + wells.data.items.length, wells.data.total)} of{" "}
                 {wells.data.total.toLocaleString("en-GB")}
               </span>
-              <span className="font-mono text-[10px]">
+              <span className="font-mono text-[12px]">
                 {wells.data.spatial_dialect}
               </span>
               <div className="flex gap-1.5">
@@ -390,7 +421,7 @@ export function ExplorerView() {
 
       {selected && (
         <div className="shrink-0 border-t bg-card px-3 py-2">
-          <div className="flex items-center justify-between gap-3 text-[11px]">
+          <div className="flex items-center justify-between gap-3 text-xs">
             <Notice tone="info">
               <span>
                 Open the full record to see the temperature history, integrity
@@ -428,12 +459,12 @@ function FacetRow({
 }) {
   return (
     <div className="min-w-0">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="text-[12px] font-semibold text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 flex max-h-16 flex-wrap gap-1 overflow-y-auto">
+      <div className="mt-1.5 flex flex-wrap gap-1.5 md:mt-1 md:max-h-16 md:gap-1 md:overflow-y-auto">
         {options.length === 0 && (
-          <span className="text-[10px] italic text-muted-foreground">
+          <span className="text-[12px] italic text-muted-foreground">
             Facets unavailable
           </span>
         )}
@@ -445,7 +476,7 @@ function FacetRow({
               type="button"
               aria-pressed={active}
               onClick={() => onToggle(option.value)}
-              className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+              className={`min-h-8 rounded-full border px-3 py-1 text-xs transition-colors md:min-h-0 md:px-2 md:py-0.5 ${
                 active
                   ? "border-primary bg-primary/10 font-medium text-primary"
                   : "border-border text-muted-foreground hover:bg-muted"

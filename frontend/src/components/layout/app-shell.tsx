@@ -1,16 +1,25 @@
 /**
- * Shell components: the sidebar rail, the top bar and the page frame.
+ * Shell components: the navigation rail, the phone tab bar, the page header and
+ * the page frame.
  *
- * The reference design is a dense, dashboard-first workspace. The layout keeps
- * that density but adds one non-negotiable element: the mock-data indicator in
- * the top bar, which is visible on every screen. A reviewer scrolling through
- * nine dashboards should never have to remember whether the numbers are real.
+ * Two layouts share one list of destinations. From the `lg` breakpoint up there
+ * is a fixed rail with the destinations grouped by what the user is doing
+ * (explore, analyse, manage). Below it the rail is replaced by a bottom tab bar
+ * holding the four most-used pages and a "More" sheet for the rest, because a
+ * hidden rail with nothing in its place leaves a phone user with no way to move
+ * between pages.
+ *
+ * One element is non-negotiable and survives every layout: the synthetic-data
+ * marker. A reviewer scrolling through nine dashboards should never have to
+ * remember whether the numbers are real.
  */
 
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   AlertTriangle,
   BarChart3,
@@ -22,168 +31,431 @@ import {
   LayoutDashboard,
   ListFilter,
   Map as MapIcon,
+  MoreHorizontal,
   Settings,
   Thermometer,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+
+export type NavGroup = "Explore" | "Analyse" | "Manage";
 
 export interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
+  group: NavGroup;
+  /** Shown on the phone tab bar, where the full label does not fit. */
+  tabLabel?: string;
 }
 
 export const NAV_ITEMS: NavItem[] = [
   {
     href: "/",
     label: "National map",
+    tabLabel: "Map",
     icon: MapIcon,
+    group: "Explore",
     description: "Full-screen UK map, wells coloured by feasibility score",
   },
   {
     href: "/dashboard",
     label: "Dashboard",
+    tabLabel: "Dashboard",
     icon: LayoutDashboard,
+    group: "Explore",
     description: "National headline figures and score distribution",
   },
   {
     href: "/candidates",
     label: "Candidates",
+    tabLabel: "Candidates",
     icon: ListFilter,
+    group: "Explore",
     description: "Ranked candidate table across every well",
   },
   {
     href: "/explorer",
     label: "Well explorer",
+    tabLabel: "Wells",
     icon: Boxes,
+    group: "Explore",
     description: "Search and filter the full well inventory",
   },
   {
     href: "/thermal",
     label: "Thermal analysis",
     icon: Thermometer,
+    group: "Analyse",
     description: "Temperature records and output estimation",
   },
   {
     href: "/heat-demand",
     label: "Heat demand",
     icon: Droplets,
+    group: "Analyse",
     description: "Building demand, clusters and well-to-demand matching",
   },
   {
     href: "/financials",
     label: "Financials",
     icon: BarChart3,
+    group: "Analyse",
     description: "CAPEX, OPEX, LCOH, NPV, IRR and scenario comparison",
   },
   {
     href: "/risk",
     label: "Risk register",
     icon: Gauge,
+    group: "Analyse",
     description: "Risk exposure by category with uncertainty weighting",
   },
   {
     href: "/pipeline",
     label: "Projects",
     icon: FolderKanban,
+    group: "Manage",
     description: "Project pipeline and stage tracking",
   },
   {
     href: "/data",
     label: "Data sources",
     icon: FileText,
+    group: "Manage",
     description: "Datasets, adapters, provenance and evidence quality",
   },
 ];
 
-/** Left navigation rail. Collapses to icons on narrow viewports. */
+export const SETTINGS_ITEM: NavItem = {
+  href: "/settings",
+  label: "Settings",
+  icon: Settings,
+  group: "Manage",
+  description: "Interface and platform settings",
+};
+
+const GROUPS: NavGroup[] = ["Explore", "Analyse", "Manage"];
+
+/** The four destinations given a permanent place on the phone tab bar. */
+const TAB_ITEMS = NAV_ITEMS.slice(0, 4);
+
+export function isActivePath(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
+
+/**
+ * The mark: a borehole with depth ticks, ending in a ring. The bore is the
+ * subject of the whole product, so the mark is the bore.
+ */
+export function BrandMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 28 28"
+      className={cn("h-8 w-8 shrink-0", className)}
+      aria-hidden
+    >
+      <rect width="28" height="28" rx="6" className="fill-accent" />
+      <g
+        className="stroke-accent-foreground"
+        fill="none"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      >
+        <path d="M14 5v9.5" />
+        <circle cx="14" cy="18.6" r="4" />
+        <path d="M6.5 8.5h3M6.5 12h3" strokeWidth="2" />
+      </g>
+    </svg>
+  );
+}
+
+/** Small solid marker for synthetic data. Always capitalised: it must not be missed. */
+export function SyntheticBadge({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-sm bg-destructive px-1.5 py-0.5 text-[11px] font-bold uppercase leading-none tracking-wide text-destructive-foreground",
+        className,
+      )}
+    >
+      Synthetic data
+    </span>
+  );
+}
+
+/** Left navigation rail, shown from the `lg` breakpoint up. */
 export function AppSidebar({
   isMock,
   className,
+  footer,
 }: {
   isMock: boolean;
   className?: string;
+  /** Account area, supplied by the chrome so the shell stays free of session logic. */
+  footer?: React.ReactNode;
 }) {
   const pathname = usePathname();
 
   return (
     <nav
       className={cn(
-        "flex shrink-0 flex-col gap-1 border-r bg-card/60 p-2 lg:w-56",
+        "w-60 shrink-0 flex-col border-r border-rail-border bg-rail text-rail-foreground",
         className,
       )}
       aria-label="Primary"
     >
       <Link
         href="/"
-        className="mb-2 flex items-center gap-2.5 rounded-md px-2 py-2"
+        className="flex items-center gap-3 px-5 pb-5 pt-6 focus-visible:outline-offset-[-2px]"
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground">
-          <Thermometer className="h-4 w-4" aria-hidden />
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-xs font-semibold leading-tight">
-            Geothermal Well Atlas
-          </div>
-          <div className="truncate text-[10px] text-muted-foreground">
+        <BrandMark />
+        <span className="min-w-0">
+          <span className="font-display block truncate text-[1.375rem]">
+            Well Atlas
+          </span>
+          <span className="block truncate text-xs text-rail-muted">
             UK onshore screening
-          </div>
-        </div>
+          </span>
+        </span>
       </Link>
 
-      {NAV_ITEMS.map((item) => {
-        const isActive =
-          item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
-        const Icon = item.icon;
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 pb-4 pt-1">
+        {GROUPS.map((group) => (
+          <div key={group}>
+            <p className="px-3 pb-1.5 text-xs font-medium text-rail-muted">
+              {group}
+            </p>
+            <ul className="space-y-0.5">
+              {NAV_ITEMS.filter((item) => item.group === group).map((item) => {
+                const active = isActivePath(pathname, item.href);
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      title={item.description}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        active
+                          ? "bg-rail-active font-medium text-white before:absolute before:inset-y-1.5 before:-left-3 before:w-[3px] before:rounded-r before:bg-accent"
+                          : "text-rail-foreground/75 hover:bg-rail-active/60 hover:text-white",
+                      )}
+                    >
+                      <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={item.description}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs transition-colors",
-              isActive
-                ? "bg-primary/10 font-medium text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            <span className="truncate">{item.label}</span>
-          </Link>
-        );
-      })}
-
-      <div className="mt-auto space-y-1 pt-3">
+      <div className="space-y-2 border-t border-rail-border p-3">
         {isMock && (
-          <div className="flex items-start gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1.5">
+          <div
+            role="note"
+            className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/15 px-2.5 py-2"
+          >
             <AlertTriangle
-              className="mt-0.5 h-3 w-3 shrink-0 text-destructive"
+              className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-300"
               aria-hidden
             />
-            <span className="text-[10px] font-medium leading-tight text-destructive">
-              Synthetic data loaded
+            <span className="text-xs font-medium leading-snug text-red-200">
+              Synthetic data is loaded
             </span>
           </div>
         )}
         <Link
-          href="/settings"
-          className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+          href={SETTINGS_ITEM.href}
+          aria-current={
+            isActivePath(pathname, SETTINGS_ITEM.href) ? "page" : undefined
+          }
+          className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+            isActivePath(pathname, SETTINGS_ITEM.href)
+              ? "bg-rail-active font-medium text-white"
+              : "text-rail-foreground/75 hover:bg-rail-active/60 hover:text-white",
+          )}
         >
-          <Settings className="h-4 w-4" aria-hidden />
+          <Settings className="h-[18px] w-[18px]" aria-hidden />
           Settings
         </Link>
+        {footer}
       </div>
     </nav>
   );
 }
 
-/** Top bar with title, subtitle and optional actions. */
+/**
+ * Bottom tab bar for phones and tablets.
+ *
+ * `onMore` opens the sheet holding everything that does not fit. The bar is a
+ * flex child, not `position: fixed`, so the page area above it is always
+ * exactly the space that remains and nothing scrolls underneath it.
+ */
+export function MobileTabBar({
+  onMore,
+  moreActive,
+  className,
+}: {
+  onMore: () => void;
+  moreActive: boolean;
+  className?: string;
+}) {
+  const pathname = usePathname();
+
+  const tabClass = (active: boolean) =>
+    cn(
+      "relative flex min-h-[3.5rem] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium transition-colors",
+      active
+        ? "text-foreground before:absolute before:inset-x-3 before:top-0 before:h-[3px] before:rounded-b before:bg-accent"
+        : "text-muted-foreground active:bg-muted",
+    );
+
+  return (
+    <nav
+      aria-label="Primary"
+      className={cn("pb-safe shrink-0 border-t bg-card", className)}
+    >
+      <ul className="grid grid-cols-5">
+        {TAB_ITEMS.map((item) => {
+          const active = isActivePath(pathname, item.href);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={tabClass(active)}
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+                <span className="max-w-full truncate">
+                  {item.tabLabel ?? item.label}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+        <li>
+          <button
+            type="button"
+            onClick={onMore}
+            aria-haspopup="dialog"
+            className={cn(tabClass(moreActive), "w-full")}
+          >
+            <MoreHorizontal className="h-5 w-5" aria-hidden />
+            <span>More</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
+/** Bottom sheet listing every destination, with the account area beneath. */
+export function MobileMenuSheet({
+  open,
+  onOpenChange,
+  footer,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  footer?: React.ReactNode;
+}) {
+  const pathname = usePathname();
+
+  // Navigating from inside the sheet should dismiss it.
+  React.useEffect(() => {
+    onOpenChange(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-rail/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          className="pb-safe fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t bg-card shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        >
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-card px-5 pb-2 pt-4">
+            <DialogPrimitive.Title className="font-display text-2xl">
+              All sections
+            </DialogPrimitive.Title>
+            <DialogPrimitive.Close
+              className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </DialogPrimitive.Close>
+          </div>
+
+          <div className="space-y-5 px-3 pb-4 pt-1">
+            {GROUPS.map((group) => (
+              <div key={group}>
+                <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+                  {group}
+                </p>
+                <ul>
+                  {[...NAV_ITEMS, SETTINGS_ITEM]
+                    .filter((item) => item.group === group)
+                    .map((item) => {
+                      const active = isActivePath(pathname, item.href);
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            aria-current={active ? "page" : undefined}
+                            className={cn(
+                              "flex min-h-12 items-center gap-3.5 rounded-md px-3 text-base",
+                              active
+                                ? "bg-muted font-medium text-foreground"
+                                : "text-foreground/85 active:bg-muted",
+                            )}
+                          >
+                            <Icon
+                              className={cn(
+                                "h-5 w-5 shrink-0",
+                                active
+                                  ? "text-foreground"
+                                  : "text-muted-foreground",
+                              )}
+                              aria-hidden
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block">{item.label}</span>
+                              <span className="block truncate text-xs font-normal text-muted-foreground">
+                                {item.description}
+                              </span>
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {footer && <div className="border-t px-5 py-4">{footer}</div>}
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  );
+}
+
+/**
+ * Page title block with optional actions and a second row for page-level
+ * controls. The title is the one place the condensed display face is used at
+ * size, so every page opens the same way.
+ */
 export function AppHeader({
   title,
   subtitle,
@@ -203,27 +475,29 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2.5",
+        "border-b bg-background px-4 pb-4 pt-5 sm:px-6 lg:px-8 lg:pb-5 lg:pt-7",
         className,
       )}
     >
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <h1 className="truncate text-sm font-semibold">{title}</h1>
-          {isMock && (
-            <span className="rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-destructive-foreground">
-              Synthetic data
-            </span>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0 max-w-3xl">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h1 className="font-display text-[1.875rem] sm:text-[2.5rem]">
+              {title}
+            </h1>
+            {isMock && <SyntheticBadge />}
+          </div>
+          {subtitle && (
+            <p className="voice-note mt-2 text-[0.9375rem] text-muted-foreground">
+              {subtitle}
+            </p>
           )}
         </div>
-        {subtitle && (
-          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2">{actions}</div>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
-      {children && (
-        <div className="w-full">{children}</div>
-      )}
+      {children && <div className="mt-4 w-full">{children}</div>}
     </header>
   );
 }
@@ -236,10 +510,14 @@ export function PageFrame({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("min-h-0 flex-1 overflow-auto", className)}>{children}</div>;
+  return (
+    <div className={cn("min-h-0 flex-1 overflow-auto", className)}>
+      {children}
+    </div>
+  );
 }
 
-/** Consistent page padding with a max width for readability. */
+/** Consistent page padding. Left-aligned so it lines up with the header. */
 export function PageBody({
   children,
   wide = false,
@@ -250,7 +528,13 @@ export function PageBody({
   className?: string;
 }) {
   return (
-    <div className={cn("p-4", wide ? "max-w-none" : "mx-auto max-w-7xl", className)}>
+    <div
+      className={cn(
+        "px-4 py-5 sm:px-6 sm:py-6 lg:px-8",
+        wide ? "max-w-none" : "max-w-[88rem]",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -269,7 +553,7 @@ export function DashboardGrid({
   return (
     <div
       className={cn(
-        "grid gap-3",
+        "grid gap-4",
         cols === 3
           ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
           : "grid-cols-1 lg:grid-cols-2",

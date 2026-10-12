@@ -293,7 +293,7 @@ export function ThermalView() {
                           {byStatus.map(([status, points]) => (
                             <span
                               key={status}
-                              className="flex items-center gap-1.5 text-[10px]"
+                              className="flex items-center gap-1.5 text-[12px]"
                             >
                               <span
                                 className={`h-2.5 w-2.5 ${
@@ -327,7 +327,7 @@ export function ThermalView() {
                       items={methodItems}
                       emptyLabel="No temperature readings in the top 200 wells."
                     />
-                    <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                       An indirect method - a regional estimate, an analogue well,
                       a depth extrapolation, or a basin model output - can be
                       entirely reasonable and still be labelled as an estimate.
@@ -380,7 +380,7 @@ export function ThermalView() {
                           >
                             {well.well_name}
                           </Link>
-                          <div className="font-mono text-[10px] text-muted-foreground">
+                          <div className="font-mono text-[12px] text-muted-foreground">
                             {well.well_id}
                           </div>
                         </TableCell>
@@ -397,13 +397,13 @@ export function ThermalView() {
                               <EpistemicBadge status={well.temperature_status} />
                             </span>
                           ) : (
-                            <span className="text-[11px] italic text-muted-foreground">
+                            <span className="text-xs italic text-muted-foreground">
                               Not available
                             </span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-[9px]">
+                          <Badge variant="outline" className="text-[11px]">
                             {humanise(well.temperature_status)}
                           </Badge>
                         </TableCell>
@@ -414,7 +414,7 @@ export function ThermalView() {
                         </TableCell>
                         <TableCell>
                           <span
-                            className={`text-[11px] ${CONFIDENCE_META[well.temperature_confidence].className}`}
+                            className={`text-xs ${CONFIDENCE_META[well.temperature_confidence].className}`}
                           >
                             {CONFIDENCE_META[well.temperature_confidence].label}
                           </span>
@@ -422,7 +422,7 @@ export function ThermalView() {
                         <TableCell className="text-right">
                           {well.feasibility_score !== null
                             ? Math.round(well.feasibility_score)
-                            : <span className="text-[11px] italic text-muted-foreground">Not assessed</span>}
+                            : <span className="text-xs italic text-muted-foreground">Not assessed</span>}
                         </TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon-sm" asChild>
@@ -451,9 +451,9 @@ export function ThermalView() {
           )}
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>Why method matters more than magnitude</SectionTitle>
-              <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
                 <li className="flex gap-1.5">
                   <span aria-hidden>·</span>
                   <span>
@@ -508,12 +508,12 @@ function ThermalTooltip({
   if (!point) return null;
 
   return (
-    <div className="rounded-md border bg-popover px-2.5 py-1.5 text-[11px] shadow-md">
+    <div className="rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-md">
       <div className="mb-1 font-medium">{point.name}</div>
       <div className="tabular">
         {point.temperature.toFixed(1)} °C at {Math.round(point.depth).toLocaleString("en-GB")} m
       </div>
-      <div className="mt-0.5 text-[10px] text-muted-foreground">
+      <div className="mt-0.5 text-[12px] text-muted-foreground">
         {humanise(point.status)} ·{" "}
         {point.direct ? "direct instrument reading" : "indirect method"}
       </div>

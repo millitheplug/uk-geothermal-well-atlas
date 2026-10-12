@@ -163,7 +163,7 @@ export function HeatDemandView() {
               </StatGrid>
 
               {summary.data.caveat && (
-                <p className="rounded-md border bg-muted/40 p-2.5 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="rounded-md border bg-muted/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
                   {summary.data.caveat}
                 </p>
               )}
@@ -274,11 +274,11 @@ export function HeatDemandView() {
                     {clusters.data.slice(0, 40).map((cluster) => (
                       <TableRow key={cluster.cluster_id}>
                         <TableCell>
-                          <span className="font-mono text-[10px]">
+                          <span className="font-mono text-[12px]">
                             {cluster.cluster_id}
                           </span>
                           {!cluster.is_clustered_with_postgis && (
-                            <Badge variant="muted" className="ml-1.5 text-[9px]">
+                            <Badge variant="muted" className="ml-1.5 text-[11px]">
                               grid fallback
                             </Badge>
                           )}
@@ -309,7 +309,7 @@ export function HeatDemandView() {
                               {cluster.nearest_well_id}
                             </Link>
                           ) : (
-                            <span className="text-[11px] italic text-muted-foreground">
+                            <span className="text-xs italic text-muted-foreground">
                               None within range
                             </span>
                           )}
@@ -365,7 +365,7 @@ export function HeatDemandView() {
                             ? `${(corridor.target_demand_kwh / 1000).toFixed(0)} MWh`
                             : "Not available"}
                         </TableCell>
-                        <TableCell className="text-[10px] text-muted-foreground">
+                        <TableCell className="text-[12px] text-muted-foreground">
                           {corridor.indicative && (
                             <TriangleAlert
                               className="mr-1 inline h-3 w-3 text-priority-medium"
@@ -381,7 +381,7 @@ export function HeatDemandView() {
                 <SectionTitle className="mt-3">
                   How this feeds the score
                 </SectionTitle>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   The demand component of the feasibility score uses both the
                   proximity of matched demand and the distance the network would
                   have to cover, because a well 4 km from a district loses most of

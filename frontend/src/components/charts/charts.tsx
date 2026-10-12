@@ -50,7 +50,7 @@ function ChartTooltip({
 }) {
   if (!active || !payload || payload.length === 0) return null;
   return (
-    <div className="rounded-md border bg-popover px-2.5 py-1.5 text-[11px] shadow-md">
+    <div className="rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-md">
       {label !== undefined && (
         <div className="mb-0.5 font-medium">{String(label)}</div>
       )}
@@ -151,14 +151,14 @@ export function BreakdownBars({
   const ceiling = max ?? Math.max(1, ...items.map((item) => item.value));
 
   if (items.length === 0) {
-    return <p className="text-[11px] italic text-muted-foreground">{emptyLabel}</p>;
+    return <p className="text-xs italic text-muted-foreground">{emptyLabel}</p>;
   }
 
   return (
     <ul className={cn("space-y-1.5", className)}>
       {items.map((item, index) => (
         <li key={item.key}>
-          <div className="flex items-baseline justify-between gap-2 text-[11px]">
+          <div className="flex items-baseline justify-between gap-2 text-xs">
             <span className="truncate">{item.label}</span>
             <span className="tabular shrink-0 text-muted-foreground">
               {item.value.toLocaleString("en-GB")}
@@ -198,7 +198,7 @@ export function ScoreBandBars({
   return (
     <ul className={cn("space-y-1", className)}>
       {items.map((item) => (
-        <li key={item.label} className="flex items-center gap-2 text-[11px]">
+        <li key={item.label} className="flex items-center gap-2 text-xs">
           <span className="w-16 shrink-0 text-muted-foreground">
             {item.label}
           </span>
@@ -334,7 +334,7 @@ export function RiskBars({
   return (
     <ul className={cn("space-y-1", className)}>
       {sorted.map((item) => (
-        <li key={item.label} className="flex items-center gap-2 text-[11px]">
+        <li key={item.label} className="flex items-center gap-2 text-xs">
           <span className="w-40 shrink-0 truncate text-muted-foreground">
             {item.label}
           </span>
@@ -351,7 +351,7 @@ export function RiskBars({
             {item.value.toFixed(1)}
           </span>
           {item.severity && (
-            <span className="w-14 shrink-0 text-right text-[10px] uppercase text-muted-foreground">
+            <span className="w-14 shrink-0 text-right text-[12px] text-muted-foreground">
               {item.severity}
             </span>
           )}

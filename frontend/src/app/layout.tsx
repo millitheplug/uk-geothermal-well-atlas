@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Archivo, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 
 import { AppChrome } from "@/components/layout/app-chrome";
 import { AppProvider } from "@/components/providers/app-provider";
@@ -10,9 +10,20 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
-const inter = Inter({
+// One grotesque with a width axis: condensed for titles and figures, normal
+// width for the interface. A serif carries the explanatory notes.
+const sans = Archivo({
   subsets: ["latin"],
+  axes: ["wdth"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const serif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -40,9 +51,11 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets fixed bars sit under the notch and home indicator (see .pb-safe).
+  viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfaf8" },
-    { media: "(prefers-color-scheme: dark)", color: "#12161d" },
+    { media: "(prefers-color-scheme: light)", color: "#14202b" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1016" },
   ],
 };
 
@@ -53,7 +66,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-GB" suppressHydrationWarning>
-      <body className={`${inter.variable} ${mono.variable} font-sans antialiased`}>
+      <body className={`${sans.variable} ${serif.variable} ${mono.variable} font-sans antialiased`}>
         <AppProvider>
           <TooltipProvider delayDuration={200}>
             <AppChrome>{children}</AppChrome>

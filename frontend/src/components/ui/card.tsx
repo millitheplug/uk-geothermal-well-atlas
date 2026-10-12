@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative rounded-lg border bg-card text-card-foreground shadow-sm",
+      "relative rounded-lg border bg-card text-card-foreground",
       mock && "mock-watermark",
       className,
     )}
@@ -25,7 +25,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col gap-1.5 p-5 pb-3", className)}
+    className={cn("flex flex-col gap-1 p-4 pb-3 sm:p-5 sm:pb-3", className)}
     {...props}
   />
 ));
@@ -37,7 +37,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-sm font-semibold leading-tight tracking-tight", className)}
+    className={cn("text-base font-semibold leading-tight tracking-tight", className)}
     {...props}
   />
 ));
@@ -49,7 +49,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-xs leading-relaxed text-muted-foreground", className)}
+    className={cn("voice-note text-[0.8125rem] text-muted-foreground", className)}
     {...props}
   />
 ));

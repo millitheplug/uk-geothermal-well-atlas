@@ -51,7 +51,7 @@ export default function RouteError({
             </div>
           </div>
 
-          <pre className="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/50 p-2.5 font-mono text-[10px] leading-relaxed text-destructive">
+          <pre className="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/50 p-2.5 font-mono text-[12px] leading-relaxed text-destructive">
             {error.message}
             {error.digest && `\n\ndigest: ${error.digest}`}
           </pre>

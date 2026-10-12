@@ -247,12 +247,12 @@ export function WellMap({
         <button
           type="button"
           onClick={resetView}
-          className="rounded border border-border bg-card/90 px-2 py-1 text-[11px] font-medium shadow-sm backdrop-blur hover:bg-card"
+          className="min-h-10 rounded-md border border-border bg-card/95 px-3 text-sm font-medium shadow-sm backdrop-blur hover:bg-card md:min-h-0 md:px-2 md:py-1 md:text-xs"
         >
           Reset to UK
         </button>
         <span
-          className="rounded border border-border bg-card/90 px-2 py-1 text-[10px] text-muted-foreground shadow-sm backdrop-blur"
+          className="hidden rounded border border-border bg-card/90 px-2 py-1 text-[12px] text-muted-foreground shadow-sm backdrop-blur md:inline-block"
           title={
             usingRasterFallback
               ? "The configured vector style could not be loaded, so the map fell back to OpenStreetMap raster tiles through the same GL renderer. Attribution is in the map control at the bottom right."
@@ -285,13 +285,44 @@ function MapLegend({ className }: { className?: string }) {
   ];
 
   return (
+    <>
+      {/* Phone: the whole ramp on one line, so it never fights the attribution. */}
+      <div
+        className={cn(
+          "absolute bottom-12 left-2 z-10 flex items-center gap-2 rounded-md border border-border bg-card/95 px-2.5 py-1.5 text-[12px] text-muted-foreground shadow-sm backdrop-blur md:hidden",
+          className,
+        )}
+        role="img"
+        aria-label="Feasibility score legend: dark blue is low, green is high, grey is not assessed"
+      >
+        <span className="font-medium text-foreground">Score</span>
+        <span className="tabular">0</span>
+        <span className="flex overflow-hidden rounded-sm" aria-hidden>
+          {[...bands].reverse().map((band) => (
+            <span
+              key={band.label}
+              className="h-3 w-5"
+              style={{ backgroundColor: band.colour }}
+            />
+          ))}
+        </span>
+        <span className="tabular">100</span>
+        <span className="flex items-center gap-1">
+          <span
+            className="h-3 w-3 rounded-sm border border-dashed border-muted-foreground/60 bg-muted"
+            aria-hidden
+          />
+          n/a
+        </span>
+      </div>
+
     <div
       className={cn(
-        "absolute bottom-3 left-3 z-10 rounded border border-border bg-card/92 p-2 shadow-sm backdrop-blur",
+        "absolute bottom-3 left-3 z-10 hidden rounded border border-border bg-card/92 p-2 shadow-sm backdrop-blur md:block",
         className,
       )}
     >
-      <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="text-[11px] font-semibold text-muted-foreground">
         Feasibility score
       </div>
       <div className="mt-1 space-y-0.5">
@@ -302,7 +333,7 @@ function MapLegend({ className }: { className?: string }) {
               style={{ backgroundColor: band.colour }}
               aria-hidden
             />
-            <span className="tabular text-[10px] text-muted-foreground">
+            <span className="tabular text-[12px] text-muted-foreground">
               {band.label}
             </span>
           </div>
@@ -312,13 +343,14 @@ function MapLegend({ className }: { className?: string }) {
             className="h-2 w-4 rounded-sm border border-dashed border-muted-foreground/60 bg-muted"
             aria-hidden
           />
-          <span className="text-[10px] text-muted-foreground">Not assessed</span>
+          <span className="text-[12px] text-muted-foreground">Not assessed</span>
         </div>
       </div>
-      <p className="mt-1.5 max-w-[9rem] text-[9px] leading-tight text-muted-foreground">
+      <p className="mt-1.5 max-w-[9rem] text-[11px] leading-tight text-muted-foreground">
         Marker radius grows as evidence thins.
       </p>
     </div>
+    </>
   );
 }
 

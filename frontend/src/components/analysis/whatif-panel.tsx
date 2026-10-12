@@ -228,7 +228,7 @@ export function WhatIfPanel({
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-end gap-3">
           <div className="w-56">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="mb-1 text-[12px] font-semibold text-muted-foreground">
               Configuration
             </div>
             <Select
@@ -275,7 +275,7 @@ export function WhatIfPanel({
             const overriding = typeof current === "number";
             return (
               <div key={spec.key as string}>
-                <div className="flex items-baseline justify-between text-[11px]">
+                <div className="flex items-baseline justify-between text-xs">
                   <label className="font-medium">{spec.label}</label>
                   <span className="tabular">
                     {overriding ? (
@@ -283,7 +283,7 @@ export function WhatIfPanel({
                         {current.toFixed(spec.decimals ?? 2)} {spec.unit}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[12px] text-muted-foreground">
                         engine default
                       </span>
                     )}
@@ -309,7 +309,7 @@ export function WhatIfPanel({
                   className="mt-1.5"
                   aria-label={spec.label}
                 />
-                <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
                   {spec.help}
                 </p>
               </div>
@@ -320,7 +320,7 @@ export function WhatIfPanel({
         {error && (
           <p
             role="alert"
-            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-[11px] text-destructive"
+            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive"
           >
             {error}
           </p>
@@ -414,9 +414,9 @@ function Comparison({
   return (
     <div className="rounded-md border bg-muted/40 p-3">
       <SectionTitle>Baseline against your assumptions</SectionTitle>
-      <table className="mt-2 w-full text-[11px]">
+      <table className="mt-2 w-full text-xs">
         <thead>
-          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <tr className="text-left text-[12px] text-muted-foreground">
             <th className="pb-1 font-semibold">Figure</th>
             <th className="pb-1 text-right font-semibold">Baseline</th>
             <th className="pb-1 text-right font-semibold">With overrides</th>
@@ -456,7 +456,7 @@ function Comparison({
       </table>
 
       {candidate.recommendation !== baseline.recommendation && (
-        <p className="mt-2 rounded border border-primary/30 bg-primary/5 p-2 text-[11px]">
+        <p className="mt-2 rounded border border-primary/30 bg-primary/5 p-2 text-xs">
           The recommendation moves from{" "}
           <strong>{baseline.recommendation}</strong> to{" "}
           <strong>{candidate.recommendation}</strong> under these assumptions.
@@ -464,7 +464,7 @@ function Comparison({
         </p>
       )}
 
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
         The baseline column is the engine&apos;s own result for this well with no
         overrides. Every figure in the third column inherits the status of its
         most uncertain input; overriding a flow rate does not make the output a
@@ -577,7 +577,7 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
       </CardHeader>
       <CardContent className="space-y-3">
         {Math.abs(weightSum - 1) > 0.001 && (
-          <p className="rounded border border-priority-medium/40 bg-priority-medium/5 px-2.5 py-1.5 text-[11px] text-priority-medium">
+          <p className="rounded border border-priority-medium/40 bg-priority-medium/5 px-2.5 py-1.5 text-xs text-priority-medium">
             Probability weights sum to {weightSum.toFixed(2)}, not 1. The
             expected values below are still reported, but a weighted average over
             weights that do not sum to one is not an expectation.
@@ -592,11 +592,11 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
                   <p className="text-xs font-medium">
                     {scenario.label ?? humanise(scenario.name)}
                   </p>
-                  <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">
                     {scenario.description}
                   </p>
                 </div>
-                <Badge variant="outline" className="text-[9px]">
+                <Badge variant="outline" className="text-[11px]">
                   weight {((scenario.probability_weight ?? 0) * 100).toFixed(0)}%
                 </Badge>
               </div>
@@ -615,7 +615,7 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
                     (min + max) / 2;
                   return (
                     <div key={key}>
-                      <div className="flex items-baseline justify-between text-[11px]">
+                      <div className="flex items-baseline justify-between text-xs">
                         <span>{label}</span>
                         <span className="tabular">
                           {value.toFixed(step < 1 ? 3 : 0)} {unit}
@@ -647,7 +647,7 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
         {error && (
           <p
             role="alert"
-            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-[11px] text-destructive"
+            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive"
           >
             {error}
           </p>
@@ -655,7 +655,7 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
 
         {comparison && (
           <div className="space-y-3 rounded-md border bg-muted/40 p-3">
-            <div className="flex flex-wrap gap-4 text-[11px]">
+            <div className="flex flex-wrap gap-4 text-xs">
               <span>
                 <span className="text-muted-foreground">Expected LCOH </span>
                 <span className="tabular font-medium">
@@ -690,9 +690,9 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
               height={160}
             />
 
-            <table className="w-full text-[11px]">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr className="text-left text-[12px] text-muted-foreground">
                   <th className="pb-1 font-semibold">Scenario</th>
                   <th className="pb-1 text-right font-semibold">Output</th>
                   <th className="pb-1 text-right font-semibold">CAPEX</th>
@@ -742,14 +742,14 @@ export function ScenarioPanel({ wellId }: { wellId: string }) {
             </table>
 
             {comparison.notes.length > 0 && (
-              <ul className="space-y-0.5 text-[10px] leading-relaxed text-muted-foreground">
+              <ul className="space-y-0.5 text-[12px] leading-relaxed text-muted-foreground">
                 {comparison.notes.map((note, index) => (
                   <li key={index}>· {note}</li>
                 ))}
               </ul>
             )}
 
-            <p className="text-[10px] leading-relaxed text-muted-foreground">
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
               A wide spread is the most useful number here. It says how much of
               this assessment rests on inputs nobody has measured yet.
             </p>

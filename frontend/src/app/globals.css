@@ -12,35 +12,45 @@
  */
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 222 25% 12%;
+    /* Limestone surfaces, graphite-blue ink, sulphur as the one accent.
+       Sulphur is the colour of geothermal vents; it is used for the active
+       marker and a few highlights, never for body text on a light surface. */
+    --background: 72 14% 93%;
+    --foreground: 208 30% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 25% 12%;
+    --card: 75 22% 98%;
+    --card-foreground: 208 30% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 25% 12%;
+    --popover: 75 22% 99%;
+    --popover-foreground: 208 30% 15%;
 
-    --primary: 199 89% 26%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 208 40% 20%;
+    --primary-foreground: 75 22% 98%;
 
-    --secondary: 40 24% 94%;
-    --secondary-foreground: 222 25% 18%;
+    --secondary: 72 12% 88%;
+    --secondary-foreground: 208 30% 18%;
 
-    --muted: 40 20% 95%;
-    --muted-foreground: 220 9% 42%;
+    --muted: 72 12% 90%;
+    --muted-foreground: 208 12% 33%;
 
-    --accent: 24 82% 48%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 47 92% 54%;
+    --accent-foreground: 208 40% 14%;
 
-    --destructive: 0 72% 45%;
+    --destructive: 0 68% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 14% 88%;
-    --input: 40 14% 88%;
-    --ring: 199 89% 26%;
+    --border: 72 9% 83%;
+    --input: 208 10% 58%;
+    --ring: 208 75% 42%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
+
+    /* Navigation rail: dark in both themes so the chrome stays one object. */
+    --rail: 208 36% 12%;
+    --rail-foreground: 72 14% 92%;
+    --rail-muted: 208 14% 66%;
+    --rail-border: 208 24% 21%;
+    --rail-active: 208 32% 19%;
 
     /* Recommendation levels */
     --priority-high: 158 64% 26%;
@@ -65,38 +75,45 @@
     --score-80: 128 55% 36%;
     --score-100: 92 60% 32%;
 
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
     --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 40 20% 94%;
+    --background: 208 30% 8%;
+    --foreground: 72 14% 92%;
 
-    --card: 222 28% 11%;
-    --card-foreground: 40 20% 94%;
+    --card: 208 28% 11%;
+    --card-foreground: 72 14% 92%;
 
-    --popover: 222 28% 11%;
-    --popover-foreground: 40 20% 94%;
+    --popover: 208 28% 11%;
+    --popover-foreground: 72 14% 92%;
 
-    --primary: 199 89% 58%;
-    --primary-foreground: 222 40% 10%;
+    --primary: 47 90% 56%;
+    --primary-foreground: 208 40% 12%;
 
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 40 20% 94%;
+    --secondary: 208 22% 16%;
+    --secondary-foreground: 72 14% 92%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 220 12% 65%;
+    --muted: 208 20% 15%;
+    --muted-foreground: 208 12% 66%;
 
-    --accent: 24 90% 58%;
-    --accent-foreground: 222 40% 10%;
+    --accent: 47 80% 50%;
+    --accent-foreground: 208 40% 12%;
 
     --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 18% 22%;
-    --input: 220 18% 22%;
-    --ring: 199 89% 58%;
+    --border: 208 18% 20%;
+    --input: 208 14% 34%;
+    --ring: 47 90% 56%;
+
+    --rail: 208 36% 7%;
+    --rail-foreground: 72 14% 92%;
+    --rail-muted: 208 14% 62%;
+    --rail-border: 208 24% 17%;
+    --rail-active: 208 32% 14%;
 
     --priority-high: 158 62% 48%;
     --priority-medium: 42 92% 56%;
@@ -127,9 +144,27 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    /* Archivo kerns a space after "y" very tightly ("Feasibility score");
+       a touch of word spacing restores an even rhythm. */
+    word-spacing: 0.04em;
+    /* Sub-pixel glyph positioning: stops uneven gaps in small capitals on
+       1x displays, where advances would otherwise be rounded to whole pixels. */
+    text-rendering: geometricPrecision;
+  }
+
+  /* Keyboard focus is always visible, in a colour that holds on both the
+     limestone surfaces and the dark rail. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 
   /* Numeric columns line up when digits are tabular. Used for every figure the
@@ -140,6 +175,29 @@
 }
 
 @layer components {
+  /** Condensed heavy grotesque for page titles and headline figures. */
+  .font-display {
+    font-stretch: 78%;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    word-spacing: 0.08em;
+    line-height: 1.02;
+  }
+
+  /** Explanatory prose: a serif voice, so notes read differently from data. */
+  .voice-note {
+    font-family: var(--font-serif);
+    line-height: 1.6;
+  }
+
+  /** Safe-area padding for fixed bars on notched phones. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   /**
    * Watermark for synthetic development data.
    *
@@ -179,29 +237,42 @@
       transparent
     );
   }
+}
 
-  /* MapLibre overrides so the map inherits the theme. */
-  .maplibregl-ctrl-group {
-    @apply rounded-md border border-border bg-card shadow-sm;
-  }
+/**
+ * MapLibre overrides so the map inherits the theme.
+ *
+ * Deliberately outside `@layer components`: Tailwind removes unused rules from
+ * that layer, and these selectors are never written in a component, so they
+ * were being dropped from the built stylesheet.
+ */
+.maplibregl-ctrl-group {
+  @apply rounded-md border border-border bg-card shadow-sm;
+}
 
-  .maplibregl-popup-content {
-    @apply rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg;
-  }
+.maplibregl-popup-content {
+  @apply rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg;
+}
 
-  .maplibregl-popup-tip {
-    @apply border-border bg-popover;
-  }
+.maplibregl-popup-tip {
+  @apply border-border bg-popover;
+}
 
-  /* Attribution is a licence condition, so it stays legible and expanded
-     rather than collapsing into an icon the user has to discover. */
-  .maplibregl-ctrl-attrib {
-    @apply rounded border border-border bg-card/90 text-[10px] text-muted-foreground;
-  }
+/* Attribution is a licence condition, so it stays legible and expanded
+   rather than collapsing into an icon the user has to discover. */
+.maplibregl-ctrl-attrib {
+  @apply rounded border border-border bg-card/90 text-[10px] text-muted-foreground;
+}
 
-  .maplibregl-ctrl-attrib a {
-    @apply text-muted-foreground underline-offset-2 hover:underline;
-  }
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib-inner {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.maplibregl-ctrl-attrib a {
+  @apply text-muted-foreground underline-offset-2 hover:underline;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -28,7 +28,7 @@ import { EPISTEMIC_META } from "@/lib/domain";
 import type { EpistemicStatus } from "@/types/api";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[12px] font-semibold transition-colors",
   {
     variants: {
       variant: {
@@ -39,7 +39,7 @@ const badgeVariants = cva(
       },
       size: {
         default: "px-2.5 py-1 text-xs",
-        sm: "px-1.5 py-0 text-[10px]",
+        sm: "px-1.5 py-0 text-[11px]",
       },
     },
     defaultVariants: { variant: "default", size: "default" },
@@ -95,14 +95,14 @@ export function EpistemicBadge({
   const badge = (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 align-middle font-mono text-[9px] font-semibold uppercase leading-none tracking-wider",
+        "inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-[3px] align-middle text-[11px] font-semibold uppercase leading-none tracking-wide",
         meta.className,
         className,
       )}
       title={withTooltip ? `${meta.label}: ${meta.description}` : undefined}
       aria-label={`${meta.label}. ${meta.description}`}
     >
-      <Icon className="h-2.5 w-2.5" aria-hidden />
+      <Icon className="h-3 w-3" aria-hidden />
       {expanded ? meta.label : meta.short}
     </span>
   );
@@ -203,16 +203,16 @@ export function MockDataBanner({
     <div
       role="alert"
       className={cn(
-        "flex items-start gap-2.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm",
+        "flex items-start gap-3 rounded-md border border-l-[6px] border-destructive/30 border-l-destructive bg-destructive/10 px-3.5 py-3 text-sm",
         className,
       )}
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
+      <AlertTriangle className="mt-0.5 h-[18px] w-[18px] shrink-0 text-destructive" aria-hidden />
       <div className="min-w-0">
         <p className="font-semibold text-destructive">
           Synthetic development data
         </p>
-        <p className="mt-0.5 text-xs text-destructive/90">
+        <p className="voice-note mt-1 text-[0.875rem] text-foreground/90">
           {what.charAt(0).toUpperCase() + what.slice(1)} come from a development
           dataset. No well shown here corresponds to a real UK borehole, and
           nothing on this screen may be presented as production well data.
@@ -227,7 +227,7 @@ export function EvidenceDisclaimer({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground",
+        "voice-note flex items-start gap-2.5 rounded-md border border-dashed border-border px-3.5 py-2.5 text-[0.8125rem] text-muted-foreground",
         className,
       )}
     >

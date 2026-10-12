@@ -100,7 +100,7 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
         />
 
         {filtered.length === 0 ? (
-          <p className="text-[11px] italic text-muted-foreground">
+          <p className="text-xs italic text-muted-foreground">
             No calculation matches that filter.
           </p>
         ) : (
@@ -117,12 +117,12 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
                     className="flex w-full items-center justify-between gap-2 py-2 text-left hover:bg-muted/40"
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className="truncate font-mono text-[11px]">
+                      <span className="truncate font-mono text-xs">
                         {entry.function_name}()
                       </span>
                       <EpistemicBadge status={entry.status} />
                     </span>
-                    <span className="tabular shrink-0 text-[11px] font-medium">
+                    <span className="tabular shrink-0 text-xs font-medium">
                       {entry.result === null || entry.result === undefined
                         ? "no result"
                         : `${formatNumber(entry.result)} ${entry.result_unit}`}
@@ -130,10 +130,10 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
                   </button>
 
                   {open && (
-                    <div className="space-y-2 rounded-md bg-muted/50 p-2.5 text-[11px]">
+                    <div className="space-y-2 rounded-md bg-muted/50 p-2.5 text-xs">
                       <div>
                         <SectionTitle>Formula</SectionTitle>
-                        <code className="mt-1 block rounded bg-card p-2 font-mono text-[10px] leading-relaxed">
+                        <code className="mt-1 block rounded bg-card p-2 font-mono text-[12px] leading-relaxed">
                           {entry.formula}
                         </code>
                       </div>
@@ -151,7 +151,7 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
                           <TableBody>
                             {Object.entries(entry.inputs).map(([name, value]) => (
                               <TableRow key={name}>
-                                <TableCell className="font-mono text-[10px]">
+                                <TableCell className="font-mono text-[12px]">
                                   {name}
                                 </TableCell>
                                 <TableCell>
@@ -173,7 +173,7 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
                       {Object.keys(entry.intermediate_values).length > 0 && (
                         <div>
                           <SectionTitle>Intermediate values</SectionTitle>
-                          <ul className="mt-1 space-y-0.5 font-mono text-[10px] text-muted-foreground">
+                          <ul className="mt-1 space-y-0.5 font-mono text-[12px] text-muted-foreground">
                             {Object.entries(entry.intermediate_values).map(
                               ([name, value]) => (
                                 <li key={name}>
@@ -228,7 +228,7 @@ export function TracePanel({ trace }: { trace: CalculationTrace[] }) {
                         </ul>
                       )}
 
-                      <p className="font-mono text-[10px] text-muted-foreground">
+                      <p className="font-mono text-[12px] text-muted-foreground">
                         engine {entry.engine_version}
                         {entry.confidence !== null &&
                           ` · confidence ${Math.round(entry.confidence * 100)}%`}
@@ -267,7 +267,7 @@ export function EvidencePanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {evidence.length === 0 ? (
-          <p className="text-[11px] italic text-muted-foreground">
+          <p className="text-xs italic text-muted-foreground">
             No evidence records are attached to this analysis.
           </p>
         ) : (
@@ -289,24 +289,24 @@ export function EvidencePanel({
                     <span className="flex items-center gap-1.5">
                       <EpistemicBadge status={item.status} />
                       {item.is_mock && (
-                        <Badge variant="outline" className="mock-badge text-[9px]">
+                        <Badge variant="outline" className="mock-badge text-[11px]">
                           synthetic
                         </Badge>
                       )}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  <p className="mt-0.5 text-[12px] text-muted-foreground">
                     {item.source}
                     {item.document_type && ` · ${humanise(item.document_type)}`}
                     {item.source_date && ` · ${item.source_date.slice(0, 10)}`}
                     {item.page_reference && ` · p.${item.page_reference}`}
                   </p>
                   {item.excerpt && (
-                    <p className="mt-1 border-l-2 pl-2 text-[11px] italic leading-relaxed text-muted-foreground">
+                    <p className="mt-1 border-l-2 pl-2 text-xs italic leading-relaxed text-muted-foreground">
                       {item.excerpt}
                     </p>
                   )}
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
                     <span>Reliability {item.reliability.toFixed(2)}</span>
                     <span>Quality {item.quality.toFixed(2)}</span>
                     <span>Relevance {item.relevance.toFixed(2)}</span>
@@ -338,15 +338,15 @@ export function EvidencePanel({
                   className="flex items-start justify-between gap-2 border-b py-1.5 last:border-0"
                 >
                   <div className="min-w-0">
-                    <p className="text-[11px]">{claim.claim}</p>
-                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                    <p className="text-xs">{claim.claim}</p>
+                    <p className="mt-0.5 font-mono text-[12px] text-muted-foreground">
                       {claim.field_name}
                       {claim.agent && ` · ${claim.agent}`}
                     </p>
                   </div>
                   <span className="flex shrink-0 items-center gap-1.5">
                     {claim.is_critical && (
-                      <Badge variant="outline" className="text-[9px]">
+                      <Badge variant="outline" className="text-[11px]">
                         critical
                       </Badge>
                     )}
@@ -384,7 +384,7 @@ export function RegulatoryPanel({
       </CardHeader>
       <CardContent>
         {requirements.length === 0 ? (
-          <p className="text-[11px] italic text-muted-foreground">
+          <p className="text-xs italic text-muted-foreground">
             No consent requirements are recorded for this configuration.
           </p>
         ) : (
@@ -395,23 +395,23 @@ export function RegulatoryPanel({
                   <span className="text-xs font-medium">{item.title}</span>
                   <span className="flex items-center gap-1.5">
                     {item.is_mandatory && (
-                      <Badge variant="outline" className="text-[9px]">
+                      <Badge variant="outline" className="text-[11px]">
                         mandatory
                       </Badge>
                     )}
                     {item.is_mock && (
-                      <Badge variant="outline" className="mock-badge text-[9px]">
+                      <Badge variant="outline" className="mock-badge text-[11px]">
                         synthetic
                       </Badge>
                     )}
                   </span>
                 </div>
                 {item.description && (
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                     {item.description}
                   </p>
                 )}
-                <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-muted-foreground">
+                <p className="mt-1 flex flex-wrap gap-x-3 text-[12px] text-muted-foreground">
                   {item.authority && <span>{item.authority}</span>}
                   {item.jurisdiction && <span>{item.jurisdiction}</span>}
                   {item.typical_lead_time_months !== null && (
@@ -484,21 +484,21 @@ export function ValidationPanel({ actions }: { actions: ValidationAction[] }) {
             <li key={action.id} className="rounded-md border p-2.5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="text-xs font-medium">{action.title}</span>
-                <Badge className={`text-[9px] ${PRIORITY_CLASS[action.priority]}`}>
+                <Badge className={`text-[11px] ${PRIORITY_CLASS[action.priority]}`}>
                   {action.priority}
                 </Badge>
               </div>
               {action.description && (
-                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                   {action.description}
                 </p>
               )}
               {action.rationale && (
-                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
                   Why: {action.rationale}
                 </p>
               )}
-              <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-muted-foreground">
+              <p className="mt-1 flex flex-wrap gap-x-3 text-[12px] text-muted-foreground">
                 <span>{humanise(action.action_type)}</span>
                 {action.estimated_cost_gbp !== null && (
                   <span>
@@ -512,7 +512,7 @@ export function ValidationPanel({ actions }: { actions: ValidationAction[] }) {
               </p>
               {(action.addresses_risk_ids.length > 0 ||
                 action.addresses_data_gaps.length > 0) && (
-                <p className="mt-1 text-[10px] text-primary">
+                <p className="mt-1 text-[12px] text-primary">
                   Addresses:{" "}
                   {[
                     ...action.addresses_risk_ids.map((id) => `risk ${id}`),
@@ -607,7 +607,7 @@ export function AgentPanel({
             <ul className="space-y-1.5">
               {entries.map(([name, value]) => (
                 <li key={name} className="rounded-md border p-2.5">
-                  <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <p className="font-mono text-[12px] text-muted-foreground">
                     {humanise(name)}
                   </p>
                   <AgentValue value={value} />
@@ -621,13 +621,13 @@ export function AgentPanel({
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-2">
               <details>
-                <summary className="cursor-pointer text-[11px] font-medium text-primary">
+                <summary className="cursor-pointer text-xs font-medium text-primary">
                   <span className="inline-flex items-center gap-1.5">
                     <ScrollText className="h-3.5 w-3.5" aria-hidden />
                     Full twenty-one section report (markdown)
                   </span>
                 </summary>
-                <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/40 p-3 font-mono text-[10px] leading-relaxed">
+                <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/40 p-3 font-mono text-[12px] leading-relaxed">
                   {reportMarkdown}
                 </pre>
               </details>
@@ -642,7 +642,7 @@ export function AgentPanel({
                 Download .md
               </Button>
             </div>
-            <p className="text-[10px] leading-relaxed text-muted-foreground">
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
               Screening output from desk-study data. It is not a statement of
               commercial viability, and no figure in it substitutes for
               engineering sign-off.
@@ -658,20 +658,20 @@ export function AgentPanel({
 function AgentValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
     return (
-      <p className="mt-0.5 text-[11px] italic text-muted-foreground">
+      <p className="mt-0.5 text-xs italic text-muted-foreground">
         Not available
       </p>
     );
   }
   if (typeof value === "string") {
-    return <p className="mt-0.5 text-[11px] leading-relaxed">{value}</p>;
+    return <p className="mt-0.5 text-xs leading-relaxed">{value}</p>;
   }
   if (typeof value === "number" || typeof value === "boolean") {
-    return <p className="mt-0.5 text-[11px] tabular">{String(value)}</p>;
+    return <p className="mt-0.5 text-xs tabular">{String(value)}</p>;
   }
   if (Array.isArray(value)) {
     return (
-      <ul className="mt-0.5 space-y-0.5 text-[11px] leading-relaxed">
+      <ul className="mt-0.5 space-y-0.5 text-xs leading-relaxed">
         {value.map((item, index) => (
           <li key={index} className="flex gap-1.5">
             <span aria-hidden>·</span>
@@ -683,10 +683,10 @@ function AgentValue({ value }: { value: unknown }) {
   }
   if (typeof value === "object") {
     return (
-      <dl className="mt-0.5 space-y-0.5 text-[11px]">
+      <dl className="mt-0.5 space-y-0.5 text-xs">
         {Object.entries(value as Record<string, unknown>).map(([key, item]) => (
           <div key={key} className="flex gap-2">
-            <dt className="shrink-0 font-mono text-[10px] text-muted-foreground">
+            <dt className="shrink-0 font-mono text-[12px] text-muted-foreground">
               {key}
             </dt>
             <dd className="min-w-0 break-words">

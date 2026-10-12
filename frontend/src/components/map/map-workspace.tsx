@@ -51,6 +51,9 @@ export function MapWorkspace() {
   const [showBuildings, setShowBuildings] = React.useState(false);
   const [showClusters, setShowClusters] = React.useState(false);
   const [showCorridors, setShowCorridors] = React.useState(false);
+  // Layer toggles are always open on a wide screen; on a phone they sit behind a
+  // button so they do not cover the map.
+  const [layersOpen, setLayersOpen] = React.useState(false);
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [unadopted, setUnadopted] = React.useState<UnadoptedWellSummary | null>(null);
@@ -209,17 +212,17 @@ export function MapWorkspace() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Filter bar */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-card/70 px-3 py-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-card px-3 py-2.5 sm:px-4">
         <div className="relative min-w-[14rem] flex-1 sm:max-w-xs">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search well name, ID, operator or licence"
-            className="h-8 pl-8 text-xs"
+            className="pl-9"
             aria-label="Search wells"
           />
         </div>
@@ -232,7 +235,7 @@ export function MapWorkspace() {
           <Filter className="h-3.5 w-3.5" aria-hidden />
           Filters
           {activeFilters > 0 && (
-            <span className="ml-1 rounded bg-primary-foreground/20 px-1 text-[10px]">
+            <span className="ml-1 rounded bg-primary-foreground/20 px-1 text-[12px]">
               {activeFilters}
             </span>
           )}
@@ -245,7 +248,7 @@ export function MapWorkspace() {
           </Button>
         )}
 
-        <div className="ml-auto flex items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
           {map.data && (
             <span className="tabular">
               {map.data.features.length.toLocaleString("en-GB")} wells
@@ -331,7 +334,7 @@ export function MapWorkspace() {
               />
               <span>
                 Include synthetic wells
-                <span className="block text-[10px] text-muted-foreground">
+                <span className="block text-[12px] text-muted-foreground">
                   Off shows only wells loaded from real source adapters.
                 </span>
               </span>
@@ -382,12 +385,25 @@ export function MapWorkspace() {
           />
 
           {/* Layer toggles */}
-          <div className="absolute right-3 top-3 z-10 w-48 rounded-md border border-border bg-card/92 p-2 shadow-sm backdrop-blur">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Layers className="h-3 w-3" aria-hidden />
+          <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1.5 sm:right-3 sm:top-3">
+            <button
+              type="button"
+              onClick={() => setLayersOpen((value) => !value)}
+              aria-expanded={layersOpen}
+              aria-controls="map-layers"
+              className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border bg-card/95 px-3 text-sm font-medium shadow-sm backdrop-blur md:pointer-events-none md:min-h-0 md:border-0 md:bg-transparent md:px-0 md:shadow-none md:backdrop-blur-none"
+            >
+              <Layers className="h-4 w-4" aria-hidden />
               Layers
-            </div>
-            <div className="mt-1.5 space-y-1.5">
+            </button>
+            <div
+              id="map-layers"
+              className={cn(
+                "w-60 rounded-md border border-border bg-card/95 p-3 shadow-sm backdrop-blur md:block md:w-56",
+                layersOpen ? "block" : "hidden",
+              )}
+            >
+            <div className="space-y-2.5">
               <LayerToggle
                 icon={Building2}
                 label="Heat demand clusters"
@@ -408,14 +424,15 @@ export function MapWorkspace() {
               />
             </div>
             {showCorridors && corridors.data && (
-              <p className="mt-1.5 text-[9px] leading-tight text-muted-foreground">
+              <p className="mt-2 text-xs leading-snug text-muted-foreground">
                 {corridors.data.caveat}
               </p>
             )}
+            </div>
           </div>
 
           {!includeMock && map.data && map.data.features.length > 0 && (
-            <div className="absolute bottom-3 right-3 z-10 max-w-xs">
+            <div className="absolute bottom-20 right-2 z-10 max-w-xs max-md:left-2 max-md:max-w-none md:bottom-3 md:right-3">
               <MockDataBanner
                 isMock={map.data.features.some(
                   (feature) => feature.properties?.is_mock === true,
@@ -429,7 +446,8 @@ export function MapWorkspace() {
 
         {/* Slide-over panel */}
         {unadopted && (
-          <aside className="flex w-full shrink-0 flex-col border-l bg-card lg:w-[26rem] xl:w-[30rem]">
+          <aside className="flex flex-col bg-card max-lg:absolute max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:h-[72%] max-lg:rounded-t-2xl max-lg:border-t max-lg:shadow-[0_-12px_32px_-12px_rgb(0_0_0/0.35)] lg:w-[26rem] lg:shrink-0 lg:border-l xl:w-[30rem]">
+            <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-border lg:hidden" aria-hidden />
             <AdoptWellPanel
               well={unadopted}
               onDismiss={() => setUnadopted(null)}
@@ -445,7 +463,8 @@ export function MapWorkspace() {
         )}
 
         {selectedId && (
-          <aside className="flex w-full shrink-0 flex-col border-l bg-card lg:w-[26rem] xl:w-[30rem]">
+          <aside className="flex flex-col bg-card max-lg:absolute max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:h-[72%] max-lg:rounded-t-2xl max-lg:border-t max-lg:shadow-[0_-12px_32px_-12px_rgb(0_0_0/0.35)] lg:w-[26rem] lg:shrink-0 lg:border-l xl:w-[30rem]">
+            <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-border lg:hidden" aria-hidden />
             {detail.loading && !detail.data && (
               <Loading label="Loading well record" className="flex-1" />
             )}
@@ -497,7 +516,7 @@ function FilterField({
 }) {
   return (
     <div className="space-y-1">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="text-[12px] font-semibold text-muted-foreground">
         {label}
       </div>
       {children}
@@ -516,7 +535,7 @@ function ChipGroup({
 }) {
   if (options.length === 0) {
     return (
-      <p className="text-[11px] italic text-muted-foreground">
+      <p className="text-xs italic text-muted-foreground">
         Facets unavailable while offline
       </p>
     );
@@ -533,7 +552,7 @@ function ChipGroup({
             aria-pressed={active}
             onClick={() => onToggle(option.value)}
             className={cn(
-              "rounded-full border px-2 py-0.5 text-[10px] transition-colors",
+              "rounded-full border px-2 py-0.5 text-[12px] transition-colors",
               active
                 ? "border-primary bg-primary/10 font-medium text-primary"
                 : "border-border text-muted-foreground hover:bg-muted",
@@ -559,9 +578,9 @@ function LayerToggle({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-[11px]">
+    <label className="flex min-h-8 items-center gap-2.5 text-sm">
       <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
-      <Icon className="h-3 w-3 text-muted-foreground" aria-hidden />
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
       <span className="flex-1">{label}</span>
     </label>
   );
@@ -570,7 +589,7 @@ function LayerToggle({
 /** Compact badge used in the map header for the spatial dialect. */
 export function DialectBadge({ dialect }: { dialect: string }) {
   return (
-    <Badge variant="muted" className="font-mono text-[9px]">
+    <Badge variant="muted" className="font-mono text-[11px]">
       {dialect}
     </Badge>
   );

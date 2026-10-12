@@ -91,7 +91,7 @@ export function SettingsView() {
                   {
                     label: "API base",
                     value: (
-                      <code className="font-mono text-[11px]">
+                      <code className="font-mono text-xs">
                         {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}
                       </code>
                     ),
@@ -108,7 +108,7 @@ export function SettingsView() {
                   },
                 ]}
               />
-              <p className="text-[11px] leading-relaxed text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 The renderer is MapLibre GL JS (BSD-3-Clause) and the default
                 style is OpenFreeMap over OpenStreetMap data. No access token
                 and no vendor account are required. If the style host cannot be
@@ -127,9 +127,9 @@ export function SettingsView() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-[11px] leading-relaxed text-muted-foreground">
+              <ul className="space-y-2 text-xs leading-relaxed text-muted-foreground">
                 <li className="flex gap-2">
-                  <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                  <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                     no
                   </Badge>
                   <span>
@@ -139,7 +139,7 @@ export function SettingsView() {
                   </span>
                 </li>
                 <li className="flex gap-2">
-                  <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                  <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                     no
                   </Badge>
                   <span>
@@ -150,7 +150,7 @@ export function SettingsView() {
                   </span>
                 </li>
                 <li className="flex gap-2">
-                  <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                  <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                     no
                   </Badge>
                   <span>
@@ -160,7 +160,7 @@ export function SettingsView() {
                   </span>
                 </li>
                 <li className="flex gap-2">
-                  <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                  <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                     no
                   </Badge>
                   <span>
@@ -191,7 +191,7 @@ export function SettingsView() {
                 </Notice>
               )}
               {audit.data && audit.data.entries.length > 0 && (
-                <ul className="divide-y text-[11px]">
+                <ul className="divide-y text-xs">
                   {audit.data.entries.slice(0, 40).map(
                     (entry: Record<string, unknown>, index: number) => (
                       <li key={index} className="flex items-baseline justify-between gap-3 py-1.5">
@@ -204,7 +204,7 @@ export function SettingsView() {
                             {String(entry.resource_id ?? "").slice(0, 8)}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                        <span className="shrink-0 text-[12px] text-muted-foreground">
                           {entry.created_at ? String(entry.created_at).slice(0, 19).replace("T", " ") : ""}
                         </span>
                       </li>
@@ -216,9 +216,9 @@ export function SettingsView() {
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>Why there is no global settings panel for prices</SectionTitle>
-              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Heat price, discount rate, flow rate and electricity price are
                 engineering inputs, not preferences. They change CAPEX, OPEX, LCOH
                 and the feasibility score, so they are applied per analysis on the
