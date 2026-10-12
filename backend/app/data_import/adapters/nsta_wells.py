@@ -1,7 +1,7 @@
 """Real ingestion adapter: NSTA onshore England petroleum wellbores.
 
 Reads the GeoJSON written by ``python -m scripts.fetch_nsta_onshore_wells``
-(publisher: North Sea Transition Authority, NSTA Open User Licence) and writes
+(publisher: North Sea Transition Authority, NSTA User Agreement) and writes
 real well rows, temperature observations and record-based integrity rows.
 
 Separation from synthetic data
@@ -59,11 +59,14 @@ logger = logging.getLogger(__name__)
 
 SOURCE = "nsta_onshore"
 SOURCE_URL = "https://www.arcgis.com/home/item.html?id=d40f9dc58ca84268935582152a5b20f9"
-LICENCE = "NSTA Open User Licence. Contains data from the North Sea Transition Authority."
+LICENCE = (
+    "NSTA User Agreement (non-commercial exploitation). Contains information "
+    "provided by the North Sea Transition Authority and/or other third parties."
+)
 TEMPERATURE_METHOD = "nsta_max_hole_temperature"
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PATH = _REPO_ROOT / "data" / "adapters" / "nsta" / "nsta_onshore_wells_wgs84.geojson"
+DEFAULT_PATH = _REPO_ROOT / "data" / "real" / "nsta" / "nsta_onshore_wells_wgs84.geojson"
 
 #: NSTA mechanical status -> (platform well-status wording, integrity wording).
 #: Both right-hand values are phrases the shared normalisers already recognise.

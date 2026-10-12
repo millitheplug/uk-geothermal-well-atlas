@@ -2,12 +2,13 @@
 
 Source: "UK England onshore petroleum wellbores top holes (WGS84)", published by
 the North Sea Transition Authority (ArcGIS owner ``NSTA_GIS``) under the NSTA
-Open User Licence. This replaced the older "NSTA Onshore Wells (BNG)" item
+User Agreement (non-commercial). This replaced the older "NSTA Onshore Wells (BNG)" item
 (1200c2c8a87f4c5083b40068d96dd120), which now returns 403 after NSTA's GIS
 platform migration.
 
-The file is written under ``data/adapters/`` which is gitignored: the data is
-fetched from the publisher, never committed. The output is a GeoJSON
+The file is written to ``data/real/nsta/``, where a snapshot is committed:
+the NSTA User Agreement permits copying and publishing with attribution, for
+non-commercial exploitation. Re-running this script refreshes the snapshot. The output is a GeoJSON
 FeatureCollection with a ``metadata`` block (publisher, licence, service URL,
 download time, record count) and a sidecar ``.sha256`` so a dataset version can
 be verified by the importer.
@@ -38,9 +39,9 @@ SERVICE_URL = (
     "https://services-eu1.arcgis.com/OZMfUznmLTnWccBc/arcgis/rest/services/"
     "UKCS onshore petroleum wells top holes WGS84/FeatureServer/0"
 )
-LICENCE = "NSTA Open User Licence"
+LICENCE = "NSTA User Agreement (non-commercial exploitation)"
 PUBLISHER = "North Sea Transition Authority"
-DEFAULT_OUT = Path("data/adapters/nsta/nsta_onshore_wells_wgs84.geojson")
+DEFAULT_OUT = Path("data/real/nsta/nsta_onshore_wells_wgs84.geojson")
 PAGE_SIZE = 2000  # the service's maxRecordCount
 TIMEOUT_S = 120
 
@@ -104,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         "metadata": {
             "publisher": PUBLISHER,
             "licence": LICENCE,
-            "attribution": "Contains data from the North Sea Transition Authority.",
+            "attribution": "Contains information provided by the North Sea Transition Authority and/or other third parties.",
             "source_item": ITEM_URL,
             "service": SERVICE_URL,
             "downloaded_utc": datetime.now(UTC).isoformat(timespec="seconds"),

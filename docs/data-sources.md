@@ -91,7 +91,7 @@ for implementation, not a clearance to redistribute.
 
 | Source | Publisher | Contents | Notes |
 |---|---|---|---|
-| **NSTA onshore petroleum wellbores (top holes, WGS84)** — verified, see below | North Sea Transition Authority | 2,138 onshore England wellbores: headers, operators, licences, dates, coordinates, TVDSS/MD depth, mechanical status, max/min hole temperature | The canonical well inventory. NSTA Open User Licence. Fetch with `python -m scripts.fetch_nsta_onshore_wells`. The platform is not for public indexing, and the UI sets `robots: noindex` accordingly. |
+| **NSTA onshore petroleum wellbores (top holes, WGS84)** — verified, see below | North Sea Transition Authority | 2,138 onshore England wellbores: headers, operators, licences, dates, coordinates, TVDSS/MD depth, mechanical status, max/min hole temperature | The canonical well inventory. NSTA User Agreement, non-commercial. Snapshot in `data/real/nsta/`. The platform is not for public indexing, and the UI sets `robots: noindex` accordingly. |
 | **NSTA well operations reports** | NSTA | Reports on individual wells, sometimes including temperature surveys | Often PDF. Expect an extraction step and a per-document evidence record. |
 | **BGS borehole index** | British Geological Survey | Borehole locations, stratigraphy, final depths | Good for cross-checking depth and formation against operator records. |
 | **BGS geothermal gradient maps** | BGS | Regional geothermal gradient and surface heat flow | Regional values are `MODELLED`, never `MEASURED`. |
@@ -102,10 +102,10 @@ for implementation, not a clearance to redistribute.
 |---|---|
 | ArcGIS item | `d40f9dc58ca84268935582152a5b20f9` — *UK England onshore petroleum wellbores top holes (WGS84)*, owner `NSTA_GIS` |
 | Feature service | `services-eu1.arcgis.com/OZMfUznmLTnWccBc/.../UKCS onshore petroleum wells top holes WGS84/FeatureServer/0` |
-| Licence | NSTA Open User Licence — attribute as "Contains data from the North Sea Transition Authority" |
+| Licence | NSTA User Agreement: copy, publish, distribute and adapt; exploit **non-commercially only**. Required attribution: "Contains information provided by the North Sea Transition Authority and/or other third parties." |
 | Records | 2,138 wellbores, all with geometry, no duplicate ids |
 | Coverage | England only. NSTA does not publish onshore data for Scotland, Wales or Northern Ireland. |
-| Fetch | `python -m scripts.fetch_nsta_onshore_wells` → `data/adapters/nsta/` (gitignored) plus a `.sha256` sidecar |
+| Snapshot | Committed at `data/real/nsta/` with a `.sha256` sidecar; refresh with `python -m scripts.fetch_nsta_onshore_wells` |
 
 The older item *NSTA Onshore Wells (BNG)* (`1200c2c8a87f4c5083b40068d96dd120`) returns 403
 since NSTA's GIS migration. Do not point an adapter at it.
@@ -123,7 +123,7 @@ since NSTA's GIS migration. Do not point an adapter at it.
 **Loading it.** From the repository root, after `init`:
 
 ```bash
-python -m scripts.fetch_nsta_onshore_wells     # download (gitignored)
+python -m scripts.fetch_nsta_onshore_wells     # optional: refresh the committed snapshot
 python -m scripts.cli ingest nsta_wells        # load as real, source = nsta_onshore
 ```
 
