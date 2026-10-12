@@ -15,14 +15,14 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & { mock?: boolean }
 >(({ className, mock = false, ...props }, ref) => (
-  <div className="relative w-full overflow-x-auto">
+  <div className="relative w-full overflow-x-auto overscroll-x-contain">
     <table
       ref={ref}
-      className={cn("w-full caption-bottom border-collapse text-xs", className)}
+      className={cn("w-full caption-bottom border-collapse text-xs md:text-sm", className)}
       {...props}
     />
     {mock && (
-      <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider text-destructive">
+      <p className="mt-1.5 text-[12px] font-semibold uppercase tracking-wider text-destructive">
         Synthetic development data
       </p>
     )}
@@ -34,7 +34,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("bg-muted/60 [&_tr]:border-b", className)} {...props} />
 ));
 TableHeader.displayName = "TableHeader";
 
@@ -84,7 +84,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-8 whitespace-nowrap px-2.5 text-left align-middle text-[10px] font-semibold uppercase tracking-wider text-muted-foreground",
+      "h-10 whitespace-nowrap px-2.5 text-left align-middle text-xs font-semibold text-muted-foreground",
       className,
     )}
     {...props}
@@ -98,7 +98,7 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("px-2.5 py-2 align-middle tabular", className)}
+    className={cn("px-2.5 py-2.5 align-middle tabular", className)}
     {...props}
   />
 ));
@@ -110,7 +110,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-2 text-[11px] text-muted-foreground", className)}
+    className={cn("mt-2 text-xs text-muted-foreground", className)}
     {...props}
   />
 ));

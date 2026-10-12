@@ -172,23 +172,39 @@ export function StatTile({
 
   const inner = (
     <>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="text-xs font-medium leading-snug text-muted-foreground">
         {label}
       </div>
-      <div className={cn("mt-1 flex items-baseline gap-1.5", toneClass)}>
-        <span className="tabular text-2xl font-semibold leading-none">{value}</span>
+      <div className={cn("mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-1", toneClass)}>
+        {/* A figure gets the condensed display face; a phrase such as
+            "Not available" stays in the ordinary face so it never reads as a
+            number and never overflows a narrow column. */}
+        <span
+          className={cn(
+            "tabular min-w-0 break-words",
+            /\d/.test(value)
+              ? "font-display text-[1.875rem] sm:text-[2.125rem]"
+              : "text-lg font-semibold leading-tight",
+          )}
+        >
+          {value}
+        </span>
         {unit && (
-          <span className="text-xs font-normal text-muted-foreground">{unit}</span>
+          <span className="text-sm font-normal text-muted-foreground">{unit}</span>
         )}
         {status}
       </div>
-      {sub && <div className="mt-1.5 text-[11px] text-muted-foreground">{sub}</div>}
+      {sub && (
+        <div className="voice-note mt-2 text-[0.8125rem] text-muted-foreground">
+          {sub}
+        </div>
+      )}
     </>
   );
 
   const class_ = cn(
-    "rounded-md border bg-card p-3",
-    href && "transition-colors hover:bg-muted/50",
+    "block min-w-0 border-l-2 border-foreground/20 py-0.5 pl-3.5 pr-1",
+    href && "transition-colors hover:border-accent",
     className,
   );
 
@@ -213,16 +229,18 @@ export function StatGrid({
   cols?: 2 | 3 | 4 | 5;
   className?: string;
 }) {
+  // Two columns even on a phone: a readout reads better as pairs than as a
+  // long single column, and every figure stays above the fold.
   const colsClass =
     cols === 2
-      ? "sm:grid-cols-2"
+      ? ""
       : cols === 3
-        ? "sm:grid-cols-2 lg:grid-cols-3"
+        ? "sm:grid-cols-3"
         : cols === 5
-          ? "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-          : "sm:grid-cols-2 lg:grid-cols-4";
+          ? "sm:grid-cols-3 xl:grid-cols-5"
+          : "lg:grid-cols-4";
   return (
-    <div className={cn("grid grid-cols-1 gap-3", colsClass, className)}>
+    <div className={cn("grid grid-cols-2 gap-x-4 gap-y-6", colsClass, className)}>
       {children}
     </div>
   );
@@ -253,13 +271,13 @@ export function KeyValueList({
           key={index}
           className={cn(
             "flex items-baseline justify-between gap-3",
-            dense ? "py-1" : "py-1.5",
+            dense ? "py-1" : "py-2",
           )}
         >
           <dt className="shrink-0 text-muted-foreground">
             {item.label}
             {item.hint && (
-              <span className="ml-1 text-[10px] opacity-70">({item.hint})</span>
+              <span className="ml-1 text-[12px] opacity-70">({item.hint})</span>
             )}
           </dt>
           <dd
@@ -289,11 +307,11 @@ export function SectionTitle({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2 border-b pb-1.5",
+        "flex items-center justify-between gap-2 border-b pb-2",
         className,
       )}
     >
-      <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <h3 className="text-sm font-semibold tracking-tight text-foreground">
         {children}
       </h3>
       {action}
@@ -319,10 +337,10 @@ export function Caveats({
 }) {
   if (!items || items.length === 0) return null;
   return (
-    <Card className={cn("bg-muted/40", className)}>
-      <CardContent className="p-3">
+    <Card className={cn("border-dashed bg-transparent", className)}>
+      <CardContent className="p-3.5 sm:p-4">
         <SectionTitle>{title}</SectionTitle>
-        <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-muted-foreground">
+        <ul className="voice-note mt-2 space-y-1.5 text-[0.8125rem] text-muted-foreground">
           {items.map((item, index) => (
             <li key={index} className="flex gap-1.5">
               <span aria-hidden>·</span>
@@ -346,7 +364,7 @@ export function Prose({
   return (
     <div
       className={cn(
-        "space-y-3 text-sm leading-relaxed [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-5 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:border-b [&_h2]:pb-1 [&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_li]:ml-4 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:text-muted-foreground [&_strong]:text-foreground [&_table]:w-full [&_table]:text-xs [&_td]:border [&_td]:p-1.5 [&_th]:border [&_th]:p-1.5 [&_th]:text-left [&_th]:font-semibold",
+        "voice-note space-y-3 text-[0.9375rem] [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans [&_table]:font-sans [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-5 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:border-b [&_h2]:pb-1 [&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_li]:ml-4 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:text-muted-foreground [&_strong]:text-foreground [&_table]:w-full [&_table]:text-xs [&_td]:border [&_td]:p-1.5 [&_th]:border [&_th]:p-1.5 [&_th]:text-left [&_th]:font-semibold",
         className,
       )}
     >
@@ -369,19 +387,28 @@ export function Notice({
 }) {
   const toneClass =
     tone === "danger"
-      ? "border-destructive/40 bg-destructive/5 text-destructive"
+      ? "border-destructive/25 border-l-destructive bg-destructive/[0.06]"
       : tone === "warning"
-        ? "border-priority-medium/40 bg-priority-medium/5 text-priority-medium"
-        : "border-border bg-muted/50 text-foreground";
+        ? "border-priority-medium/30 border-l-priority-medium bg-priority-medium/[0.07]"
+        : "border-border border-l-primary/60 bg-card";
+  const iconClass =
+    tone === "danger"
+      ? "text-destructive"
+      : tone === "warning"
+        ? "text-priority-medium"
+        : "text-primary";
   const Icon = tone === "info" ? Inbox : AlertTriangle;
 
   return (
-    <div className={cn("rounded-md border p-3", toneClass, className)}>
-      <div className="flex items-start gap-2">
-        <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-        <div className="min-w-0 text-xs leading-relaxed">
-          {title && <p className="font-semibold">{title}</p>}
-          <div className={cn(title && "mt-0.5", "text-foreground/80")}>
+    <div
+      role={tone === "info" ? undefined : "note"}
+      className={cn("rounded-md border border-l-4 p-3.5", toneClass, className)}
+    >
+      <div className="flex items-start gap-2.5">
+        <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", iconClass)} aria-hidden />
+        <div className="min-w-0 text-sm leading-relaxed">
+          {title && <p className="font-semibold text-foreground">{title}</p>}
+          <div className={cn(title && "mt-0.5", "voice-note text-[0.875rem] text-foreground/85")}>
             {children}
           </div>
         </div>

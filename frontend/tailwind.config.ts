@@ -20,8 +20,20 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: { DEFAULT: "1rem", md: "1.5rem", lg: "2rem" },
       screens: { "2xl": "1400px" },
+    },
+    // A readable floor: nothing in the interface sets below 11px, and the
+    // everyday label size is 13px (it was 10-12px).
+    fontSize: {
+      xs: ["0.8125rem", { lineHeight: "1.2rem" }],
+      sm: ["0.875rem", { lineHeight: "1.35rem" }],
+      base: ["1rem", { lineHeight: "1.55rem" }],
+      lg: ["1.125rem", { lineHeight: "1.65rem" }],
+      xl: ["1.25rem", { lineHeight: "1.7rem" }],
+      "2xl": ["1.5rem", { lineHeight: "1.9rem" }],
+      "3xl": ["1.875rem", { lineHeight: "2.2rem" }],
+      "4xl": ["2.25rem", { lineHeight: "2.4rem" }],
     },
     extend: {
       colors: {
@@ -53,6 +65,14 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        /** Navigation rail. */
+        rail: {
+          DEFAULT: "hsl(var(--rail))",
+          foreground: "hsl(var(--rail-foreground))",
+          muted: "hsl(var(--rail-muted))",
+          border: "hsl(var(--rail-border))",
+          active: "hsl(var(--rail-active))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -92,6 +112,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       keyframes: {

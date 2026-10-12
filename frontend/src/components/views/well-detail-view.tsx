@@ -213,7 +213,7 @@ export function WellDetailView() {
           {record.is_mock && <MockDataBanner isMock what="every figure on this page" />}
 
           {/* Identity strip */}
-          <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge variant="secondary">
               {WELL_STATUS_LABELS[record.status] ?? humanise(record.status)}
             </Badge>
@@ -226,7 +226,7 @@ export function WellDetailView() {
             {record.has_wellhead === false && (
               <Badge variant="outline">No wellhead recorded</Badge>
             )}
-            <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+            <span className="ml-auto font-mono text-[12px] text-muted-foreground">
               {record.source}
               {record.dataset_version ? ` · v${record.dataset_version}` : ""}
             </span>
@@ -240,7 +240,7 @@ export function WellDetailView() {
 
           {progress && !running && (
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <AssessmentProgress
                   stage={progress.stage}
                   completedStages={progress.completed_stages}
@@ -255,7 +255,7 @@ export function WellDetailView() {
           {/* ---- Record ---- */}
           <div className="grid gap-3 lg:grid-cols-3">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Borehole</SectionTitle>
                 <div className="mt-2">
                   <KeyValueList
@@ -334,7 +334,7 @@ export function WellDetailView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Temperature record</SectionTitle>
                 {record.temperature_c !== null ? (
                   <div className="mt-2">
@@ -345,7 +345,7 @@ export function WellDetailView() {
                       <span className="text-sm text-muted-foreground">°C</span>
                       <EpistemicBadge status={record.temperature_status} expanded />
                     </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       At {fmtDepth(record.temperature_depth_m)} via{" "}
                       {MEASUREMENT_METHOD_LABELS[record.temperature_source ?? ""] ??
                         humanise(record.temperature_source ?? "unknown method")}
@@ -354,7 +354,7 @@ export function WellDetailView() {
                         : " — an indirect method, so this is not a direct measurement"}
                       .
                     </p>
-                    <p className="mt-1 text-[11px]">
+                    <p className="mt-1 text-xs">
                       Confidence:{" "}
                       <span
                         className={CONFIDENCE_META[record.temperature_confidence].className}
@@ -364,7 +364,7 @@ export function WellDetailView() {
                     </p>
                     {record.temperature_variability_c !== null &&
                       record.temperature_variability_c > 5 && (
-                        <p className="mt-2 rounded border border-priority-medium/40 bg-priority-medium/5 p-2 text-[10px] leading-relaxed text-priority-medium">
+                        <p className="mt-2 rounded border border-priority-medium/40 bg-priority-medium/5 p-2 text-[12px] leading-relaxed text-priority-medium">
                           Sources for this well span{" "}
                           {record.temperature_variability_c.toFixed(1)} K. The
                           engine has taken the deepest stabilised reading and
@@ -383,7 +383,7 @@ export function WellDetailView() {
                       />
                       Unknown
                     </p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       No temperature measurement exists for this well. Thermal
                       potential is unknown, not zero, and it gates the whole
                       assessment: the thermal component carries 25% of the score.
@@ -400,14 +400,14 @@ export function WellDetailView() {
                       {record.temperatures.map((reading) => (
                         <li
                           key={reading.id}
-                          className="flex items-start justify-between gap-2 border-b pb-1 text-[11px] last:border-0"
+                          className="flex items-start justify-between gap-2 border-b pb-1 text-xs last:border-0"
                         >
                           <div className="min-w-0">
                             <span className="tabular font-medium">
                               {reading.temperature_c.toFixed(1)} °C at{" "}
                               {fmtDepth(reading.depth_m)}
                             </span>
-                            <span className="block text-[10px] text-muted-foreground">
+                            <span className="block text-[12px] text-muted-foreground">
                               {MEASUREMENT_METHOD_LABELS[reading.measurement_method] ??
                                 humanise(reading.measurement_method)}
                               {reading.geothermal_gradient_c_per_km !== null &&
@@ -419,7 +419,7 @@ export function WellDetailView() {
                           <span className="flex shrink-0 flex-col items-end gap-0.5">
                             <EpistemicBadge status={reading.status} />
                             {!reading.is_final_stabilised && (
-                              <span className="text-[9px] text-destructive">
+                              <span className="text-[11px] text-destructive">
                                 not stabilised
                               </span>
                             )}
@@ -433,7 +433,7 @@ export function WellDetailView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Integrity</SectionTitle>
                 {record.integrity ? (
                   <div className="mt-2">
@@ -513,13 +513,13 @@ export function WellDetailView() {
                       ]}
                     />
                     {record.integrity.unknown_reasons && (
-                      <p className="mt-2 rounded border border-epistemic-unknown/40 bg-epistemic-unknown/5 p-2 text-[10px] leading-relaxed text-muted-foreground">
+                      <p className="mt-2 rounded border border-epistemic-unknown/40 bg-epistemic-unknown/5 p-2 text-[12px] leading-relaxed text-muted-foreground">
                         {record.integrity.unknown_reasons}
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     Integrity carries 20% of the score, second only to thermal, and
                     cannot be established from desk study. Without it the engine
                     records a data gap rather than guessing a condition.
@@ -528,7 +528,7 @@ export function WellDetailView() {
 
                 {record.bottomhole_pressure_bar !== null && (
                   <div className="mt-3 border-t pt-2">
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[12px] text-muted-foreground">
                       Bottom-hole pressure
                     </div>
                     <div className="flex items-baseline gap-1.5">
@@ -545,7 +545,7 @@ export function WellDetailView() {
 
           {/* Demand */}
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>Matched heat demand (2,000 m radius)</SectionTitle>
               {demand.loading && !demand.data && (
                 <Loading label="Matching demand" compact />
@@ -557,7 +557,7 @@ export function WellDetailView() {
                       <div className="tabular text-2xl font-semibold">
                         {demand.data.total_annual_demand_kwh.toLocaleString("en-GB")}
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <div className="text-[12px] text-muted-foreground">
                         kWh/yr nearby
                         <span className="ml-1">
                           <EpistemicBadge status="ESTIMATE" />
@@ -568,7 +568,7 @@ export function WellDetailView() {
                       <div className="tabular text-2xl font-semibold">
                         {demand.data.building_count.toLocaleString("en-GB")}
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <div className="text-[12px] text-muted-foreground">
                         buildings
                       </div>
                     </div>
@@ -578,7 +578,7 @@ export function WellDetailView() {
                           ? Math.round(demand.data.nearest_building_distance_m)
                           : "—"}
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <div className="text-[12px] text-muted-foreground">
                         m to nearest
                         <span className="ml-1">
                           <EpistemicBadge status="MEASURED" />
@@ -589,13 +589,13 @@ export function WellDetailView() {
 
                   <div>
                     {demand.data.notes.length > 0 && (
-                      <ul className="space-y-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                      <ul className="space-y-0.5 text-xs leading-relaxed text-muted-foreground">
                         {demand.data.notes.map((note, index) => (
                           <li key={index}>· {note}</li>
                         ))}
                       </ul>
                     )}
-                    <p className="mt-2 text-[10px] text-muted-foreground">
+                    <p className="mt-2 text-[12px] text-muted-foreground">
                       Distances computed with{" "}
                       <code className="font-mono">{demand.data.spatial_dialect}</code>.
                       Building demand is modelled from floor area and type, not
@@ -607,10 +607,10 @@ export function WellDetailView() {
 
               {demand.data && demand.data.buildings.length > 0 && (
                 <details className="mt-3">
-                  <summary className="cursor-pointer text-[11px] font-medium text-primary">
+                  <summary className="cursor-pointer text-xs font-medium text-primary">
                     Show the {demand.data.buildings.length} nearest buildings
                   </summary>
-                  <ul className="mt-2 max-h-64 space-y-1 overflow-auto text-[11px]">
+                  <ul className="mt-2 max-h-64 space-y-1 overflow-auto text-xs">
                     {demand.data.buildings.map((building) => (
                       <li
                         key={building.id}
@@ -621,7 +621,7 @@ export function WellDetailView() {
                             {humanise(building.building_type)}
                             {building.postcode ? ` · ${building.postcode}` : ""}
                           </span>
-                          <span className="block text-[10px] text-muted-foreground">
+                          <span className="block text-[12px] text-muted-foreground">
                             {building.current_fuel
                               ? humanise(building.current_fuel)
                               : "Fuel unknown"}
@@ -631,7 +631,7 @@ export function WellDetailView() {
                         </span>
                         <span className="shrink-0 text-right tabular">
                           {Math.round(building.distance_m)} m
-                          <span className="block text-[10px] text-muted-foreground">
+                          <span className="block text-[12px] text-muted-foreground">
                             {building.annual_heat_demand_kwh !== null
                               ? `${(building.annual_heat_demand_kwh / 1000).toFixed(0)} MWh/yr`
                               : "Demand unknown"}
@@ -684,7 +684,7 @@ export function WellDetailView() {
 
           {/* ---- Provenance ---- */}
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>Record provenance</SectionTitle>
               <div className="mt-2 grid gap-x-8 gap-y-2 md:grid-cols-2">
                 <KeyValueList
@@ -746,7 +746,7 @@ export function WellDetailView() {
                 Object.keys(record.known_data_gaps).length > 0 && (
                   <div className="mt-3 border-t pt-2">
                     <SectionTitle>Known gaps in this record</SectionTitle>
-                    <ul className="mt-1.5 space-y-0.5 text-[11px] text-muted-foreground">
+                    <ul className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
                       {Object.entries(record.known_data_gaps).map(([field, note]) => (
                         <li key={field} className="flex gap-1.5">
                           <span aria-hidden>·</span>
@@ -762,7 +762,7 @@ export function WellDetailView() {
               {record.logs.length > 0 && (
                 <div className="mt-3 border-t pt-2">
                   <SectionTitle>Well logs ({record.logs.length})</SectionTitle>
-                  <ul className="mt-1.5 space-y-1 text-[11px]">
+                  <ul className="mt-1.5 space-y-1 text-xs">
                     {record.logs.map((log) => (
                       <li key={log.id} className="flex items-baseline justify-between gap-2">
                         <span>
@@ -770,7 +770,7 @@ export function WellDetailView() {
                           {log.top_depth_m !== null &&
                             ` · ${fmtDepth(log.top_depth_m)}–${fmtDepth(log.bottom_depth_m)}`}
                         </span>
-                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                        <span className="shrink-0 text-[12px] text-muted-foreground">
                           {log.has_temperature_curve ? "Temperature curve" : "No curve"}
                           {log.is_public_domain ? " · public" : " · restricted"}
                           {log.storage_uri && (
@@ -838,12 +838,12 @@ function Assessment({
       <DecisionStrip result={analysis} />
 
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-4 sm:p-5">
           <KeyFiguresGrid result={analysis} />
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <Flame className="h-3.5 w-3.5" aria-hidden />
           Configuration:{" "}
@@ -858,7 +858,7 @@ function Assessment({
             </span>
           )}
         </span>
-        <span className="font-mono text-[10px]">
+        <span className="font-mono text-[12px]">
           pipeline {analysis.pipeline_version}
         </span>
         <label className="ml-auto flex items-center gap-1.5">
@@ -872,7 +872,7 @@ function Assessment({
         </label>
       </div>
 
-      <p className="rounded-md border bg-muted/40 p-2.5 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="rounded-md border bg-muted/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
         {CONFIGURATION_DESCRIPTIONS[analysis.configuration]}
       </p>
 
@@ -944,9 +944,9 @@ function Assessment({
 
       {analysis.data_gaps.length > 0 && (
         <Card className="border-priority-medium/40">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-5">
             <SectionTitle>What is missing</SectionTitle>
-            <ul className="mt-1.5 space-y-0.5 text-[11px] leading-relaxed text-muted-foreground">
+            <ul className="mt-1.5 space-y-0.5 text-xs leading-relaxed text-muted-foreground">
               {analysis.data_gaps.map((gap, index) => (
                 <li key={index} className="flex gap-1.5">
                   <span aria-hidden>·</span>

@@ -65,7 +65,7 @@ export function EnvironmentStrip() {
   ];
 
   return (
-    <dl className="flex flex-wrap gap-x-5 gap-y-1 text-[10px]">
+    <dl className="flex flex-wrap gap-x-5 gap-y-1 text-[12px]">
       {items.map((item) => (
         <div key={item.label} className="flex items-baseline gap-1">
           <dt className="text-muted-foreground">{item.label}</dt>

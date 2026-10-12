@@ -104,7 +104,7 @@ export function AdoptWellPanel({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold">{well.name}</h2>
-            <p className="truncate font-mono text-[11px] text-muted-foreground">
+            <p className="truncate font-mono text-xs text-muted-foreground">
               {well.wellId}
               {well.region ? ` · ${well.region}` : ""}
             </p>
@@ -126,9 +126,9 @@ export function AdoptWellPanel({
         </Notice>
 
         <Card>
-          <CardContent className="space-y-2 p-3">
+          <CardContent className="space-y-2 p-4">
             <SectionLabel>What the map can show you</SectionLabel>
-            <dl className="space-y-1 text-[11px]">
+            <dl className="space-y-1 text-xs">
               <Row label="Depth" value={well.depthM !== null ? `${Math.round(well.depthM).toLocaleString("en-GB")} m` : "Not recorded"} />
               <Row
                 label="Temperature"
@@ -151,7 +151,7 @@ export function AdoptWellPanel({
               />
               <Row label="Status" value={well.status ?? "Not recorded"} />
             </dl>
-            <p className="flex items-start gap-1.5 text-[10px] leading-relaxed text-muted-foreground">
+            <p className="flex items-start gap-1.5 text-[12px] leading-relaxed text-muted-foreground">
               <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
               These are the fields the map payload carries. The full record, with
               temperature history, integrity status and matched demand, is
@@ -163,14 +163,14 @@ export function AdoptWellPanel({
         {error && (
           <p
             role="alert"
-            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-[11px] text-destructive"
+            className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive"
           >
             {error}
           </p>
         )}
 
         {projects.loading && (
-          <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
             Loading your projects…
           </p>
@@ -262,7 +262,7 @@ export function AdoptWellPanel({
       <div className="border-t p-3">
         <Link
           href="/pipeline"
-          className="text-[11px] text-primary hover:underline"
+          className="text-xs text-primary hover:underline"
         >
           Manage projects
         </Link>
@@ -273,7 +273,7 @@ export function AdoptWellPanel({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="text-[12px] font-semibold text-muted-foreground">
       {children}
     </div>
   );

@@ -150,7 +150,7 @@ export function DataSourcesView() {
               )}
               {datasets.data && datasets.data.datasets.length > 0 && (
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 sm:p-5">
                     <SectionTitle>Registered datasets</SectionTitle>
                     <div className="mt-2">
                       <Table>
@@ -174,7 +174,7 @@ export function DataSourcesView() {
                         </TableBody>
                       </Table>
                     </div>
-                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                    <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
                       Quality is a 0–1 score computed by the validation layer from
                       field completeness and plausibility checks. Reliability is
                       the source tier - a regulator record outranks a vendor
@@ -215,15 +215,15 @@ export function DataSourcesView() {
                               {adapter.name}
                             </span>
                             {adapter.is_mock && (
-                              <Badge variant="outline" className="mock-badge text-[9px]">
+                              <Badge variant="outline" className="mock-badge text-[11px]">
                                 synthetic
                               </Badge>
                             )}
                           </div>
-                          <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                             {adapter.description}
                           </p>
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-[12px] text-muted-foreground">
                             {adapter.licence && <span>{adapter.licence}</span>}
                             {adapter.source_url && (
                               <a
@@ -262,7 +262,7 @@ export function DataSourcesView() {
                   )}
                   {parameters.data && (
                     <>
-                      <p className="mb-2 rounded border bg-muted/40 p-2 text-[11px] text-muted-foreground">
+                      <p className="mb-2 rounded border bg-muted/40 p-2 text-xs text-muted-foreground">
                         {parameters.data.note}
                       </p>
                       <Table>
@@ -306,7 +306,7 @@ export function DataSourcesView() {
                   )}
                   {regulatory.data && (
                     <>
-                      <p className="mb-2 rounded border bg-muted/40 p-2 text-[11px] text-muted-foreground">
+                      <p className="mb-2 rounded border bg-muted/40 p-2 text-xs text-muted-foreground">
                         {regulatory.data.caveat}
                       </p>
                       <Table>
@@ -329,7 +329,7 @@ export function DataSourcesView() {
                                     {String(requirement.title ?? "Untitled")}
                                   </span>
                                   {Boolean(requirement.description) && (
-                                    <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
                                       {String(requirement.description)}
                                     </p>
                                   )}
@@ -347,7 +347,7 @@ export function DataSourcesView() {
                                 </TableCell>
                                 <TableCell>
                                   {requirement.is_mandatory ? (
-                                    <Badge variant="outline" className="text-[9px]">
+                                    <Badge variant="outline" className="text-[11px]">
                                       Yes
                                     </Badge>
                                   ) : (
@@ -373,9 +373,9 @@ export function DataSourcesView() {
 
           {/* Evidence model explained */}
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>The six labels, and what each one obliges</SectionTitle>
-              <div className="mt-2 grid gap-3 text-[11px] leading-relaxed md:grid-cols-2">
+              <div className="mt-2 grid gap-3 text-xs leading-relaxed md:grid-cols-2">
                 <dl>
                   {[
                     ["FACT", "Stated in a cited source document, such as a licence or a regulator record. Cite it or do not use it."],
@@ -383,7 +383,7 @@ export function DataSourcesView() {
                     ["DERIVED", "Computed from measured or documented values by a formula that is published in the trace."],
                   ].map(([label, rule]) => (
                     <div key={label} className="mb-1.5 flex gap-2">
-                      <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                      <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                         {label}
                       </Badge>
                       <span className="text-muted-foreground">{rule}</span>
@@ -398,7 +398,7 @@ export function DataSourcesView() {
                     ["UNKNOWN", "No defensible value. Shown as unknown, never as zero, and never silently dropped."],
                   ].map(([label, rule]) => (
                     <div key={label} className="mb-1.5 flex gap-2">
-                      <Badge variant="outline" className="h-4 shrink-0 text-[9px]">
+                      <Badge variant="outline" className="h-4 shrink-0 text-[11px]">
                         {label}
                       </Badge>
                       <span className="text-muted-foreground">{rule}</span>
@@ -433,7 +433,7 @@ function DatasetRow({ dataset }: { dataset: Dataset }) {
       <TableCell>
         <span className="font-medium">{dataset.name}</span>
         {dataset.description && (
-          <p className="mt-0.5 max-w-md text-[10px] leading-relaxed text-muted-foreground">
+          <p className="mt-0.5 max-w-md text-[12px] leading-relaxed text-muted-foreground">
             {dataset.description}
           </p>
         )}
@@ -442,7 +442,7 @@ function DatasetRow({ dataset }: { dataset: Dataset }) {
             href={dataset.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+            className="mt-0.5 inline-flex items-center gap-1 text-[12px] text-primary hover:underline"
           >
             {dataset.source}
             <ExternalLink className="h-2.5 w-2.5" aria-hidden />
@@ -452,8 +452,8 @@ function DatasetRow({ dataset }: { dataset: Dataset }) {
       <TableCell className="text-muted-foreground">
         {dataset.source}
       </TableCell>
-      <TableCell className="font-mono text-[10px]">{dataset.version}</TableCell>
-      <TableCell className="text-[10px] text-muted-foreground">
+      <TableCell className="font-mono text-[12px]">{dataset.version}</TableCell>
+      <TableCell className="text-[12px] text-muted-foreground">
         {dataset.licence ?? "Not recorded"}
       </TableCell>
       <TableCell className="text-right">
@@ -463,23 +463,23 @@ function DatasetRow({ dataset }: { dataset: Dataset }) {
         {dataset.quality_score.toFixed(2)}
       </TableCell>
       <TableCell>
-        <Badge variant="outline" className="text-[9px]">
+        <Badge variant="outline" className="text-[11px]">
           {humanise(dataset.reliability)}
         </Badge>
       </TableCell>
       <TableCell>
         <span className="flex flex-wrap items-center gap-1">
-          <Badge variant="muted" className="text-[9px]">
+          <Badge variant="muted" className="text-[11px]">
             {dataset.status}
           </Badge>
           {dataset.is_mock && (
-            <Badge variant="outline" className="mock-badge text-[9px]">
+            <Badge variant="outline" className="mock-badge text-[11px]">
               synthetic
             </Badge>
           )}
         </span>
       </TableCell>
-      <TableCell className="text-[10px] text-muted-foreground">
+      <TableCell className="text-[12px] text-muted-foreground">
         {dataset.last_ingested_at
           ? fmtDate(dataset.last_ingested_at)
           : dataset.download_date
@@ -500,24 +500,24 @@ function ParameterRow({ parameter }: { parameter: ParameterSpec }) {
 
   return (
     <TableRow>
-      <TableCell className="font-mono text-[10px]">{parameter.key}</TableCell>
+      <TableCell className="font-mono text-[12px]">{parameter.key}</TableCell>
       <TableCell className="font-medium">{value}</TableCell>
       <TableCell className="text-muted-foreground">
         {parameter.unit ?? "—"}
       </TableCell>
-      <TableCell className="max-w-md text-[10px] leading-relaxed text-muted-foreground">
+      <TableCell className="max-w-md text-[12px] leading-relaxed text-muted-foreground">
         {parameter.rationale}
       </TableCell>
       <TableCell>
         {parameter.source ? (
-          <span className="text-[10px]">{parameter.source}</span>
+          <span className="text-[12px]">{parameter.source}</span>
         ) : (
-          <Badge variant="outline" className="text-[9px]">
+          <Badge variant="outline" className="text-[11px]">
             assumption
           </Badge>
         )}
       </TableCell>
-      <TableCell className="text-[10px] text-muted-foreground">
+      <TableCell className="text-[12px] text-muted-foreground">
         {parameter.low !== null && parameter.high !== null
           ? `${parameter.low} – ${parameter.high}`
           : "—"}

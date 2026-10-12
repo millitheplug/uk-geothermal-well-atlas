@@ -27,7 +27,7 @@ const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 max-w-xs overflow-hidden rounded-md border bg-popover px-2.5 py-1.5 text-[11px] leading-relaxed text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        "z-50 max-w-xs overflow-hidden rounded-md border bg-popover px-2.5 py-1.5 text-xs leading-relaxed text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
         className,
       )}
       {...props}
@@ -56,7 +56,7 @@ export function InfoTooltip({
           type="button"
           aria-label={label}
           className={cn(
-            "inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-muted-foreground/50 text-[9px] font-semibold text-muted-foreground hover:border-primary hover:text-primary",
+            "inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-muted-foreground/50 text-[11px] font-semibold text-muted-foreground hover:border-primary hover:text-primary",
             className,
           )}
         >

@@ -124,7 +124,7 @@ export function FinancialsView() {
           {/* Well picker */}
           <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-3">
             <div className="min-w-[16rem] flex-1">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-1 text-[12px] font-semibold text-muted-foreground">
                 Well
               </div>
               <Select value={selected ?? ""} onValueChange={setSelected}>
@@ -145,10 +145,10 @@ export function FinancialsView() {
             </div>
 
             {candidates.loading && (
-              <p className="text-[11px] text-muted-foreground">Loading candidates…</p>
+              <p className="text-xs text-muted-foreground">Loading candidates…</p>
             )}
             {candidates.error && (
-              <p className="text-[11px] text-destructive">{candidates.error}</p>
+              <p className="text-xs text-destructive">{candidates.error}</p>
             )}
           </div>
 
@@ -247,7 +247,7 @@ export function FinancialsView() {
               {/* Recommendation and break-even */}
               <div className="grid gap-3 lg:grid-cols-3">
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 sm:p-5">
                     <PanelTitle>Where this sits</PanelTitle>
                     <div className="mt-2 flex items-baseline gap-3">
                       <span className="tabular text-3xl font-semibold">
@@ -263,7 +263,7 @@ export function FinancialsView() {
                       </Badge>
                     </div>
                     <div className="mt-3">
-                      <div className="flex items-baseline justify-between text-[11px]">
+                      <div className="flex items-baseline justify-between text-xs">
                         <span className="text-muted-foreground">
                           Evidence confidence
                         </span>
@@ -277,12 +277,12 @@ export function FinancialsView() {
                         tone="none"
                       />
                     </div>
-                    <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                       {RECOMMENDATION_META[result.recommendation].tone}
                     </p>
                     <Link
                       href={`/wells/${result.well_id}`}
-                      className="mt-2 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                     >
                       See how the score was built
                     </Link>
@@ -290,7 +290,7 @@ export function FinancialsView() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 sm:p-5">
                     <PanelTitle>Break-even and payback</PanelTitle>
                     <div className="mt-2">
                       <KeyValueList
@@ -357,7 +357,7 @@ export function FinancialsView() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 sm:p-5">
                     <PanelTitle>Distribution losses</PanelTitle>
                     <div className="mt-2">
                       <KeyValueList
@@ -400,7 +400,7 @@ export function FinancialsView() {
                     </div>
                     {result.network_loss_fraction !== null &&
                       result.network_loss_fraction > 0.2 && (
-                        <p className="mt-2 rounded border border-priority-medium/40 bg-priority-medium/5 p-2 text-[10px] leading-relaxed text-priority-medium">
+                        <p className="mt-2 rounded border border-priority-medium/40 bg-priority-medium/5 p-2 text-[12px] leading-relaxed text-priority-medium">
                           <TriangleAlert className="mr-1 inline h-3 w-3" aria-hidden />
                           More than a fifth of the extracted heat is lost before it
                           reaches a customer. At this rate, halving the run length
@@ -433,7 +433,7 @@ export function FinancialsView() {
                       lifetimeYears={25}
                     />
                   ) : (
-                    <p className="text-[11px] italic text-muted-foreground">
+                    <p className="text-xs italic text-muted-foreground">
                       Cost inputs are unavailable for this well, so no structure can
                       be shown. Check the calculation trace for which input is
                       missing.
@@ -442,7 +442,7 @@ export function FinancialsView() {
 
                   <div className="mt-4 border-t pt-3">
                     <SectionTitle>How to read these figures</SectionTitle>
-                    <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-muted-foreground">
+                    <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-muted-foreground">
                       <li className="flex gap-1.5">
                         <Calculator className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                         <span>
@@ -510,7 +510,7 @@ function LifetimeCostBars({
     <div className="space-y-2">
       {rows.map((row) => (
         <div key={row.label}>
-          <div className="flex items-baseline justify-between text-[11px]">
+          <div className="flex items-baseline justify-between text-xs">
             <span>{row.label}</span>
             <span className="tabular">
               {fmtGBP(row.value)}{" "}
@@ -530,7 +530,7 @@ function LifetimeCostBars({
           </div>
         </div>
       ))}
-      <p className="pt-1 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="pt-1 text-[12px] leading-relaxed text-muted-foreground">
         Lifetime totals are shown undiscounted for readability. The engine&apos;s
         LCOH and NPV use discounted cash flows; the exact discounting is
         recorded in the calculation trace on the well record.

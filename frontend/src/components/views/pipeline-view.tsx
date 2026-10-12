@@ -185,7 +185,7 @@ export function PipelineView() {
           {projects.data && projects.data.length === 0 && (
             <EmptyState
               title="No projects yet"
-              message="Create a project to start tracking wells. A project can hold as many wells as you like and moves through the stages on the right."
+              message="Create a project to start tracking wells. A project can hold as many wells as you like and moves through the stages described below."
               action={
                 <Button size="sm" onClick={() => setCreateOpen(true)}>
                   <Plus className="h-3.5 w-3.5" aria-hidden />
@@ -208,12 +208,12 @@ export function PipelineView() {
                         />
                         {project.name}
                       </CardTitle>
-                      <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                      <p className="mt-0.5 font-mono text-[12px] text-muted-foreground">
                         {project.slug}
                       </p>
                     </div>
                     <Badge
-                      className={`shrink-0 text-[9px] ${STAGE_TONE[project.stage] ?? STAGE_TONE.sourcing}`}
+                      className={`shrink-0 text-[11px] ${STAGE_TONE[project.stage] ?? STAGE_TONE.sourcing}`}
                     >
                       {STAGE_LABELS[project.stage] ?? humanise(project.stage)}
                     </Badge>
@@ -224,7 +224,7 @@ export function PipelineView() {
                 </CardHeader>
 
                 <CardContent className="space-y-3">
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Target region</dt>
                       <dd>{project.target_region ?? "Not set"}</dd>
@@ -256,7 +256,7 @@ export function PipelineView() {
                           type="button"
                           disabled={busyId === project.id || stage === project.stage}
                           onClick={() => void changeStage(project, stage)}
-                          className={`rounded border px-2 py-0.5 text-[10px] transition-colors disabled:cursor-default ${
+                          className={`rounded border px-2 py-0.5 text-[12px] transition-colors disabled:cursor-default ${
                             stage === project.stage
                               ? STAGE_TONE[stage]
                               : "border-border text-muted-foreground hover:bg-muted"
@@ -271,7 +271,7 @@ export function PipelineView() {
                   <div className="flex items-center justify-between border-t pt-2">
                     <Link
                       href="/candidates"
-                      className="text-[11px] text-primary hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       Add wells from the candidate table
                     </Link>
@@ -291,9 +291,9 @@ export function PipelineView() {
           </div>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>What the stages mean here</SectionTitle>
-              <div className="mt-2 grid gap-3 text-[11px] leading-relaxed text-muted-foreground sm:grid-cols-2">
+              <div className="mt-2 grid gap-3 text-xs leading-relaxed text-muted-foreground sm:grid-cols-2">
                 <div>
                   <p className="font-medium text-foreground">Up to screening</p>
                   <p className="mt-0.5">

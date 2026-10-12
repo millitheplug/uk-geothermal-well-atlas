@@ -207,7 +207,7 @@ export function RiskView() {
                 </Select>
 
                 {selectedAnalysis && (
-                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
                     <Badge variant="outline">
                       {selectedAnalysis.risk?.risk_count ?? 0} risks
                     </Badge>
@@ -237,7 +237,7 @@ export function RiskView() {
                   <CardTitle>Exposure ranked by uncertainty</CardTitle>
                   <CardDescription>
                     {selectedAnalysis.well_name}. Categories marked{" "}
-                    <Badge variant="outline" className="text-[9px]">
+                    <Badge variant="outline" className="text-[11px]">
                       data gap
                     </Badge>{" "}
                     exist because a field is missing rather than because the
@@ -263,7 +263,7 @@ export function RiskView() {
                   <div className="flex flex-wrap gap-4">
                     {["critical", "high", "medium", "low"].map((severity) => (
                       <div key={severity}>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <div className="text-[12px] text-muted-foreground">
                           {severity}
                         </div>
                         <div className="tabular text-2xl font-semibold">
@@ -289,7 +289,7 @@ export function RiskView() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-xs font-medium">{risk.title}</p>
-                            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                               {risk.description}
                             </p>
                           </div>
@@ -304,17 +304,17 @@ export function RiskView() {
                               {risk.severity}
                             </Badge>
                             {DATA_GAP_CATEGORIES.includes(risk.category) && (
-                              <Badge variant="muted" className="text-[9px]">
+                              <Badge variant="muted" className="text-[11px]">
                                 data gap
                               </Badge>
                             )}
-                            <span className="tabular text-[11px] font-medium">
+                            <span className="tabular text-xs font-medium">
                               {risk.uncertainty_adjusted_score.toFixed(1)}
                             </span>
                           </div>
                         </div>
 
-                        <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-muted-foreground">
+                        <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[12px] text-muted-foreground">
                           <span>
                             Likelihood {risk.likelihood} ({risk.probability.toFixed(2)})
                           </span>
@@ -327,19 +327,19 @@ export function RiskView() {
                         </dl>
 
                         {risk.evidence.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                          <ul className="mt-1 space-y-0.5 text-[12px] leading-relaxed text-muted-foreground">
                             {risk.evidence.map((line, index) => (
                               <li key={index}>Evidence: {line}</li>
                             ))}
                           </ul>
                         )}
                         {risk.mitigation && (
-                          <p className="mt-1 text-[10px] leading-relaxed text-primary">
+                          <p className="mt-1 text-[12px] leading-relaxed text-primary">
                             Mitigation: {risk.mitigation}
                           </p>
                         )}
                         {risk.addresses_data_gap && (
-                          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
                             Closed by obtaining: {risk.addresses_data_gap}
                           </p>
                         )}
@@ -375,9 +375,9 @@ export function RiskView() {
           )}
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <SectionTitle>What this register cannot cover</SectionTitle>
-              <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
                 <li className="flex gap-1.5">
                   <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                   <span>

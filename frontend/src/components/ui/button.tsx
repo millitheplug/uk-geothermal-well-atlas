@@ -6,13 +6,15 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        /** The single bright call to action on a screen. */
+        accent: "bg-accent text-accent-foreground hover:bg-accent/85",
         outline:
           "border border-input bg-card hover:bg-muted hover:text-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
@@ -22,12 +24,14 @@ const buttonVariants = cva(
         map: "border border-white/30 bg-slate-900/85 text-white shadow-md backdrop-blur hover:bg-slate-900/95",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        xs: "h-7 rounded px-2 text-[11px]",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
-        "icon-sm": "h-7 w-7",
+        // 40px on touch screens, 36px with a pointer: comfortable to tap,
+        // still compact in a dense table toolbar.
+        default: "h-10 px-4 py-2 md:h-9",
+        sm: "h-9 rounded-md px-3 text-xs md:h-8",
+        xs: "h-8 rounded px-2.5 text-xs md:h-7",
+        lg: "h-11 rounded-md px-8 md:h-10",
+        icon: "h-10 w-10 md:h-9 md:w-9",
+        "icon-sm": "h-8 w-8 md:h-7 md:w-7",
       },
     },
     defaultVariants: {

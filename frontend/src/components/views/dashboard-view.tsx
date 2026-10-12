@@ -221,10 +221,10 @@ export function DashboardView() {
           {/* Distribution and breakdowns */}
           <div className="grid gap-3 lg:grid-cols-3">
             <Card className="lg:col-span-2">
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle
                   action={
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[12px] text-muted-foreground">
                       All wells, including unassessed
                     </span>
                   }
@@ -236,12 +236,12 @@ export function DashboardView() {
                     <ScoreHistogram data={data.score_histogram} />
                   </div>
                 ) : (
-                  <p className="mt-3 text-[11px] italic text-muted-foreground">
+                  <p className="mt-3 text-xs italic text-muted-foreground">
                     No wells have been assessed yet. Run an assessment from the
                     map or the well explorer.
                   </p>
                 )}
-                <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
                   Scores are produced only by the deterministic Python scoring
                   engine. A well with no score is excluded from this
                   distribution rather than being counted as zero.
@@ -250,7 +250,7 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Recommendation</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars
@@ -258,7 +258,7 @@ export function DashboardView() {
                     emptyLabel="No wells have been assessed yet."
                   />
                 </div>
-                <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
                   Levels are assigned by the engine from the composite score. A
                   language model may explain a recommendation but cannot change
                   it.
@@ -267,12 +267,12 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Evidence confidence</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars items={confidenceItems} />
                 </div>
-                <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
                   Confidence describes the evidence, not the resource. A well
                   can be an excellent candidate that nobody has measured.
                 </p>
@@ -280,7 +280,7 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Region</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars
@@ -292,12 +292,12 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Well status</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars items={statusItems} />
                 </div>
-                <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
                   Status drives both access and legal feasibility. A producing
                   well usually means a live licence and an operator relationship.
                 </p>
@@ -305,7 +305,7 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Original purpose</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars items={purposeItems} />
@@ -314,7 +314,7 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Risk exposure by category</SectionTitle>
                 <div className="mt-3">
                   <BreakdownBars
@@ -322,7 +322,7 @@ export function DashboardView() {
                     emptyLabel="No assessed risks recorded."
                   />
                 </div>
-                <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
                   Exposure is the uncertainty-adjusted score summed across
                   wells, so a large number of minor unknowns outranks one
                   dramatic hazard.
@@ -331,7 +331,7 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>Wells needing data</SectionTitle>
                 <div className="mt-3 flex items-baseline gap-3">
                   <span className="tabular text-3xl font-semibold">
@@ -339,7 +339,7 @@ export function DashboardView() {
                   </span>
                   <CircleHelp className="h-4 w-4 text-muted-foreground" aria-hidden />
                 </div>
-                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Wells with at least one field the engineering model needs but
                   the source data does not contain. This is the work list for
                   anyone considering a data-gathering programme.
@@ -354,9 +354,9 @@ export function DashboardView() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-5">
                 <SectionTitle>What this page cannot tell you</SectionTitle>
-                <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-muted-foreground">
+                <ul className="mt-3 space-y-2 text-xs leading-relaxed text-muted-foreground">
                   <li className="flex gap-1.5">
                     <Thermometer className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                     <span>

@@ -28,6 +28,7 @@ import {
   ShieldQuestion,
 } from "lucide-react";
 
+import { BrandMark } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/primitives";
@@ -104,33 +105,31 @@ export function SignInScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto grid min-h-screen max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        {/* Left: what this is, and the question */}
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded bg-primary text-primary-foreground">
-              <Flame className="h-4.5 w-4.5" aria-hidden />
-            </div>
+    <div className="flex min-h-dvh flex-col bg-background lg:grid lg:grid-cols-[1.15fr_1fr]">
+      {/* Brand and question. Below lg it follows the form, so the first thing a
+          phone shows is the way in. */}
+      <div className="bg-rail px-5 py-8 text-rail-foreground sm:px-10 lg:order-none lg:flex lg:min-h-dvh lg:flex-col lg:justify-center lg:px-14 lg:py-14 xl:px-20">
+        <div className="mx-auto w-full max-w-2xl">
+          <div className="flex items-center gap-3">
+            <BrandMark className="h-10 w-10" />
             <div>
-              <div className="text-sm font-semibold leading-tight">
-                UK Geothermal Well Atlas
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                Screening for well repurposing to geothermal heat
+              <div className="font-display text-[1.625rem]">Well Atlas</div>
+              <div className="text-sm text-rail-muted">
+                UK Geothermal Well Atlas. Screening for well repurposing to
+                geothermal heat
               </div>
             </div>
           </div>
 
-          <h1 className="mt-8 text-2xl font-semibold leading-tight tracking-tight">
+          <h1 className="font-display mt-10 text-[2.25rem] sm:text-[3rem]">
             What are you investigating?
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <p className="voice-note mt-3 max-w-xl text-base text-rail-foreground/80">
             The answer changes which evidence matters, which parameters carry
             the most weight, and what the platform will refuse to tell you.
           </p>
 
-          <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+          <ul className="mt-7 grid gap-3 sm:grid-cols-2">
             {INVESTIGATIONS.map((item) => {
               const Icon = item.icon;
               const selected = focus === item.id;
@@ -141,20 +140,20 @@ export function SignInScreen() {
                     onClick={() => setFocus(item.id)}
                     aria-pressed={selected}
                     className={cn(
-                      "flex h-full w-full flex-col gap-1 rounded-md border p-3 text-left transition-colors",
+                      "flex h-full w-full flex-col gap-1.5 rounded-md border p-4 text-left transition-colors",
                       selected
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "hover:border-primary/50 hover:bg-muted/50",
+                        ? "border-accent bg-rail-active ring-1 ring-accent"
+                        : "border-rail-border bg-rail-active/40 hover:border-rail-muted hover:bg-rail-active/70",
                     )}
                   >
-                    <span className="flex items-center gap-1.5 text-xs font-semibold">
-                      <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
+                    <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <Icon className="h-4 w-4 text-accent" aria-hidden />
                       {item.title}
                     </span>
-                    <span className="text-[11px] font-medium text-foreground">
+                    <span className="text-sm font-medium text-rail-foreground">
                       {item.question}
                     </span>
-                    <span className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="voice-note text-[0.8125rem] text-rail-muted">
                       {item.detail}
                     </span>
                   </button>
@@ -163,7 +162,7 @@ export function SignInScreen() {
             })}
           </ul>
 
-          <div className="mt-8 grid gap-2 sm:grid-cols-2">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <Guarantee
               icon={ClipboardCheck}
               title="Deterministic engineering"
@@ -177,16 +176,19 @@ export function SignInScreen() {
           </div>
         </div>
 
-        {/* Right: credentials */}
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h2 className="text-sm font-semibold">Sign in</h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        </div>
+
+      {/* Credentials. First on a phone, second on a wide screen. */}
+      <div className="order-first flex items-center justify-center px-5 py-8 sm:px-10 lg:order-none lg:min-h-dvh lg:px-12">
+        <div className="w-full max-w-md">
+          <h2 className="font-display text-[2rem]">Sign in</h2>
+          <p className="voice-note mt-2 text-[0.9375rem] text-muted-foreground">
             Wells are national reference data, but projects and analyses are
             scoped to an organisation. Sign in to see what your team has
             claimed.
           </p>
 
-          <form onSubmit={submit} className="mt-5 space-y-3.5">
+          <form onSubmit={submit} className="mt-6 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -215,18 +217,18 @@ export function SignInScreen() {
             {error && (
               <p
                 role="alert"
-                className="rounded border border-destructive/40 bg-destructive/10 px-2.5 py-2 text-xs text-destructive"
+                className="rounded-md border border-l-4 border-destructive/30 border-l-destructive bg-destructive/10 px-3 py-2.5 text-sm text-foreground"
               >
                 {error}
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={busy} loading={busy}>
+            <Button type="submit" size="lg" className="w-full" disabled={busy} loading={busy}>
               {busy ? "Signing in…" : "Sign in"}
               {!busy && <ArrowRight aria-hidden />}
             </Button>
 
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
+            <p className="voice-note text-[0.8125rem] text-muted-foreground">
               {focus ? (
                 <>
                   You will land on{" "}
@@ -241,18 +243,22 @@ export function SignInScreen() {
             </p>
           </form>
 
-          <div className="mt-5 space-y-1.5 border-t pt-4 text-[11px] text-muted-foreground">
-            <p className="flex items-center gap-1.5 font-medium text-foreground">
-              <KeyRound className="h-3 w-3" aria-hidden />
+          <details className="group mt-6 border-t pt-4 text-sm text-muted-foreground">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 font-medium text-foreground [&::-webkit-details-marker]:hidden">
+              <KeyRound className="h-4 w-4" aria-hidden />
               No account yet?
-            </p>
+              <span className="ml-auto text-xs font-normal text-muted-foreground group-open:hidden">
+                Show setup steps
+              </span>
+            </summary>
+            <div className="mt-2 space-y-2">
             <p>
               Authentication is never disabled, in any environment, including
               development. A build that runs open locally and closed in
               production is a build where nobody has tested the auth path. From
               the repository root:
             </p>
-            <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-[10px] leading-relaxed">
+            <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-[12px] leading-relaxed">
 {`export DATABASE_URL=sqlite:///./geothermal.db
 python -m scripts.cli init
 python -m scripts.cli bootstrap
@@ -269,12 +275,13 @@ python -m scripts.cli seed-user \\
               directory.
             </p>
             {health && (
-              <p className="pt-1">
+              <p className="pt-1 text-xs">
                 Backend {health.version} · {health.database} · spatial{" "}
                 {health.spatial_dialect} · interpretation via {health.llm}
               </p>
             )}
-          </div>
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -291,12 +298,12 @@ function Guarantee({
   body: string;
 }) {
   return (
-    <div className="rounded-md border bg-muted/40 p-3">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold">
-        <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
+    <div className="rounded-md border border-dashed border-rail-border p-4">
+      <p className="flex items-center gap-2 text-sm font-semibold text-white">
+        <Icon className="h-4 w-4 text-accent" aria-hidden />
         {title}
       </p>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="voice-note mt-1.5 text-[0.8125rem] text-rail-muted">
         {body}
       </p>
     </div>

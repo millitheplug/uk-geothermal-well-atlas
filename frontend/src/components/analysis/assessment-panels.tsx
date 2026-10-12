@@ -50,7 +50,7 @@ export function RecommendationBadge({
           ))}
         </ul>
       )}
-      <p className="mt-1.5 text-[11px] text-muted-foreground italic">{meta.tone}</p>
+      <p className="mt-1.5 text-xs text-muted-foreground italic">{meta.tone}</p>
     </div>
   );
 }
@@ -76,19 +76,19 @@ export function FeasibilityHeadline({
         <ScoreDial score={result.feasibility_score} />
         <div className="space-y-2.5">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="text-[12px] font-semibold text-muted-foreground">
               Evidence confidence
             </div>
             <div className="flex items-center gap-2">
               <span className="tabular text-2xl font-semibold">
                 {Math.round(result.confidence_score * 100)}%
               </span>
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-[12px]">
                 {result.confidence_band.replace("_", " ")}
               </Badge>
             </div>
           </div>
-          <p className="max-w-[15rem] text-[11px] leading-relaxed text-muted-foreground">
+          <p className="max-w-[15rem] text-xs leading-relaxed text-muted-foreground">
             Confidence measures the <em>evidence</em>, not the resource. A well
             can be an excellent candidate that nobody has measured.
           </p>
@@ -98,7 +98,7 @@ export function FeasibilityHeadline({
       {/* Recommendation and next action */}
       <div className="flex flex-col justify-between gap-3 border-t pt-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             Recommendation
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -120,7 +120,7 @@ export function FeasibilityHeadline({
         </div>
 
         <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-primary">
             <CheckCircle2 className="h-3 w-3" aria-hidden />
             Next action
           </div>
@@ -188,7 +188,7 @@ export function ScoreDial({
         >
           {Math.round(score)}
         </span>
-        <span className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="mt-0.5 text-[12px] text-muted-foreground">
           of 100
         </span>
       </div>
@@ -325,7 +325,7 @@ export function KeyFiguresGrid({ result }: { result: AnalysisResult }) {
     <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
       {figures.map((figure) => (
         <div key={figure.label}>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             {figure.label}
           </div>
           <div className="mt-0.5 text-lg font-medium">

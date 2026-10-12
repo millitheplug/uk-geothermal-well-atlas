@@ -64,7 +64,7 @@ export function WellPanel({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold">{well.well_name}</h2>
-            <p className="truncate font-mono text-[11px] text-muted-foreground">
+            <p className="truncate font-mono text-xs text-muted-foreground">
               {well.well_id}
             </p>
           </div>
@@ -79,16 +79,16 @@ export function WellPanel({
         </div>
 
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          <Badge variant="secondary" className="text-[10px]">
+          <Badge variant="secondary" className="text-[12px]">
             {WELL_STATUS_LABELS[well.status] ?? humanise(well.status)}
           </Badge>
           {well.original_purpose && (
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-[12px]">
               {humanise(well.original_purpose)}
             </Badge>
           )}
           {well.region && (
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-[12px]">
               <MapPin className="mr-0.5 h-2.5 w-2.5" aria-hidden />
               {well.region}
             </Badge>
@@ -157,7 +157,7 @@ export function WellPanel({
               label="Casing"
               value={
                 well.casing_string ? (
-                  <span className="text-[11px]">{well.casing_string}</span>
+                  <span className="text-xs">{well.casing_string}</span>
                 ) : (
                   <span className="italic text-muted-foreground">
                     No casing record
@@ -179,13 +179,13 @@ export function WellPanel({
                 </span>
                 <EpistemicBadge status={well.temperature_status} expanded />
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Recorded at {fmtDepth(well.temperature_depth_m)}. Confidence{" "}
                 {well.temperature_confidence.replace("_", " ")}.
               </p>
               {well.temperature_variability_c !== null &&
                 well.temperature_variability_c > 8 && (
-                  <p className="mt-1.5 rounded border border-priority-low/30 bg-priority-low/10 p-2 text-[11px] text-priority-low">
+                  <p className="mt-1.5 rounded border border-priority-low/30 bg-priority-low/10 p-2 text-xs text-priority-low">
                     Sources span {well.temperature_variability_c.toFixed(1)} K on
                     this well, which indicates the temperature is not yet
                     established to the precision the engineering model needs.
@@ -194,7 +194,7 @@ export function WellPanel({
 
               {well.temperatures.length > 0 && (
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-[11px] font-medium text-primary">
+                  <summary className="cursor-pointer text-xs font-medium text-primary">
                     {well.temperatures.length} temperature record
                     {well.temperatures.length === 1 ? "" : "s"}
                   </summary>
@@ -202,7 +202,7 @@ export function WellPanel({
                     {well.temperatures.map((t) => (
                       <div
                         key={t.id}
-                        className="flex items-center justify-between gap-2 rounded border px-2 py-1.5 text-[11px]"
+                        className="flex items-center justify-between gap-2 rounded border px-2 py-1.5 text-xs"
                       >
                         <div>
                           <div className="tabular font-medium">
@@ -219,7 +219,7 @@ export function WellPanel({
                         <div className="flex shrink-0 flex-col items-end gap-1">
                           <EpistemicBadge status={t.status} />
                           {!t.is_final_stabilised && (
-                            <span className="text-[9px] text-destructive">
+                            <span className="text-[11px] text-destructive">
                               overstates
                             </span>
                           )}
@@ -236,7 +236,7 @@ export function WellPanel({
                 <TriangleAlert className="h-3.5 w-3.5 text-epistemic-unknown" />
                 <span className="text-xs font-medium">No temperature measurement</span>
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Thermal potential is <strong>unknown</strong>, not zero. Every
                 downstream figure depends on this, so it gates the whole
                 assessment.
@@ -273,7 +273,7 @@ export function WellPanel({
               )}
             </div>
           ) : (
-            <div className="rounded border border-priority-medium/40 bg-priority-medium/5 p-2.5 text-[11px]">
+            <div className="rounded border border-priority-medium/40 bg-priority-medium/5 p-2.5 text-xs">
               <p>
                 <strong>Not assessed.</strong> Integrity carries a 20% score
                 weight, second only to thermal, and cannot be established from
@@ -335,7 +335,7 @@ export function WellPanel({
                 )}
               </div>
               {analysis.thermal_output_status !== "MEASURED" && (
-                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                <p className="mt-1.5 text-xs text-muted-foreground">
                   Output scales linearly with flow rate, and no flow test has
                   been performed on this well. The figure is an estimate.
                 </p>
@@ -380,7 +380,7 @@ export function WellPanel({
             {analysis.data_gaps.length > 0 && (
               <section>
                 <SectionHeading icon={TriangleAlert} title="Data gaps" />
-                <ul className="space-y-1 text-[11px]">
+                <ul className="space-y-1 text-xs">
                   {analysis.data_gaps.map((gap, index) => (
                     <li key={index} className="flex gap-1.5">
                       <span aria-hidden>·</span>
@@ -398,7 +398,7 @@ export function WellPanel({
           <button
             type="button"
             onClick={() => setShowProvenance((v) => !v)}
-            className="flex w-full items-center justify-between rounded px-1 py-1 text-[11px] font-medium text-primary hover:bg-muted"
+            className="flex w-full items-center justify-between rounded px-1 py-1 text-xs font-medium text-primary hover:bg-muted"
           >
             Data provenance
             {showProvenance ? (
@@ -408,7 +408,7 @@ export function WellPanel({
             )}
           </button>
           {showProvenance && (
-            <dl className="mt-1.5 space-y-1 text-[11px]">
+            <dl className="mt-1.5 space-y-1 text-xs">
               <Row label="Source adapter" value={<code>{well.source}</code>} />
               <Row label="Dataset version" value={well.dataset_version ?? "Not recorded"} />
               {well.source_url && (
@@ -480,7 +480,7 @@ function ScoreSummary({ analysis }: { analysis: AnalysisResult }) {
     <div className="space-y-2.5 rounded-md border p-3">
       <div className="flex items-baseline justify-between">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-[12px] font-semibold text-muted-foreground">
             Feasibility
           </div>
           <div className="tabular text-2xl font-semibold">
@@ -492,7 +492,7 @@ function ScoreSummary({ analysis }: { analysis: AnalysisResult }) {
       </div>
 
       <div>
-        <div className="flex items-center justify-between text-[11px]">
+        <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Evidence confidence</span>
           <span className="tabular font-medium">
             {Math.round(analysis.confidence_score * 100)}% ({band})
@@ -507,10 +507,10 @@ function ScoreSummary({ analysis }: { analysis: AnalysisResult }) {
       </div>
 
       <div className="rounded border border-primary/30 bg-primary/5 p-2">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+        <div className="text-[12px] font-semibold text-primary">
           Next action
         </div>
-        <p className="mt-0.5 text-[11px] leading-relaxed">{analysis.next_action}</p>
+        <p className="mt-0.5 text-xs leading-relaxed">{analysis.next_action}</p>
       </div>
     </div>
   );
@@ -526,7 +526,7 @@ function SectionHeading({
   return (
     <div className="mb-1.5 flex items-center gap-1.5 border-b pb-1">
       <Icon className="h-3 w-3 text-muted-foreground" aria-hidden />
-      <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <h3 className="text-[12px] font-semibold text-muted-foreground">
         {title}
       </h3>
     </div>
