@@ -1,0 +1,79 @@
+name: Load database
+
+# Run manually from the Actions tab. Applies the schema to the hosted Postgres,
+# loads the 2,138 real NSTA wells, creates the login and runs the assessments.
+# Safe to re-run: the migration and well import are idempotent.
+#
+# Needs three repository secrets (Settings > Secrets and variables > Actions):
+#   DATABASE_URL    connection string from Neon, pasted exactly as shown
+#   ADMIN_EMAIL     email to log in with
+#   ADMIN_PASSWORD  password to log in with (use a long one)
+
+on:
+  workflow_dispatch:
+    inputs:
+      assess:
+        description: "Run feasibility assessments on every well (about 2 minutes)"
+        type: boolean
+        default: true
+      include_synthetic:
+        description: "Also load the 20 synthetic demo wells (kept separate, flagged as synthetic)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets are set
+        run: |
+          for name in DATABASE_URL ADMIN_EMAIL ADMIN_PASSWORD; do
+            if [ -z "$(printenv "$name")" ]; then
+              echo "::error::Repository secret $name is not set. Add it under Settings > Secrets and variables > Actions."
+              exit 1
+            fi
+          done
+          if [ "${#ADMIN_PASSWORD}" -lt 12 ]; then
+            echo "::error::ADMIN_PASSWORD must be at least 12 characters."
+            exit 1
+          fi
+
+      - name: Verify the data snapshot
+        working-directory: data/real/nsta
+        run: sha256sum -c nsta_onshore_wells_wgs84.geojson.sha256
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install backend
+        run: pip install -e backend
+
+      - name: Apply schema
+        run: python -m scripts.cli init --migrate
+
+      - name: Load real NSTA wells
+        run: python -m scripts.cli ingest nsta_wells
+
+      - name: Load synthetic demo data
+        if: ${{ inputs.include_synthetic }}
+        run: python -m scripts.cli bootstrap
+
+      - name: Create login
+        run: python -m scripts.cli seed-user --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD"
+
+      - name: Run assessments
+        if: ${{ inputs.assess }}
+        run: python -m scripts.cli assess --email "$ADMIN_EMAIL" --exclude-mock --limit 5000
