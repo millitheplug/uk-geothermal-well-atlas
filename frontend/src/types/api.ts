@@ -381,6 +381,8 @@ export interface RegulatoryRequirement {
 export interface AnalysisResult {
   analysis_id: string | null;
   well_id: string;
+  /** The key every well endpoint takes. `well_id` is the publisher's id. */
+  well_uuid?: string | null;
   well_name: string;
   pipeline_version: string;
   configuration: GeothermalConfiguration;
@@ -511,6 +513,8 @@ export interface ScenarioComparison {
 export interface CandidateRow {
   rank: number;
   well_id: string;
+  /** The key every well endpoint takes. `well_id` is the publisher's id. */
+  well_uuid?: string | null;
   well_name: string;
   latitude: number;
   longitude: number;
@@ -579,6 +583,8 @@ export interface HeatCluster {
   radius_m: number;
   dominant_building_type: string | null;
   nearest_well_id: string | null;
+  /** The key every well endpoint takes. `nearest_well_id` is the publisher's id. */
+  nearest_well_uuid?: string | null;
   nearest_well_distance_m: number | null;
   is_clustered_with_postgis: boolean;
 }

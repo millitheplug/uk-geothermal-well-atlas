@@ -234,6 +234,10 @@ class HeatCluster(BaseModel):
     radius_m: float
     dominant_building_type: str | None = None
     nearest_well_id: str | None = None
+    # The key every well endpoint takes. `nearest_well_id` is the publisher's id
+    # (for NSTA wells it contains a slash and spaces, e.g. "LN/10- 4Z"), which is
+    # neither a UUID nor usable as a URL segment.
+    nearest_well_uuid: uuid.UUID | None = None
     nearest_well_distance_m: float | None = None
     is_clustered_with_postgis: bool = Field(
         description="True when produced by ST_ClusterDBSCAN; false when produced by "
@@ -490,6 +494,8 @@ class AnalysisResult(BaseModel):
 
     analysis_id: uuid.UUID | None = None
     well_id: str
+    # The key every well endpoint takes (see CandidateRow.well_uuid).
+    well_uuid: uuid.UUID | None = None
     well_name: str
     pipeline_version: str
     configuration: str
@@ -651,6 +657,9 @@ class CandidateRow(BaseModel):
 
     rank: int
     well_id: str
+    # The key every well endpoint takes; `well_id` is the publisher's id and
+    # cannot be used to open, assess or filter by a well.
+    well_uuid: uuid.UUID | None = None
     well_name: str
     latitude: float
     longitude: float

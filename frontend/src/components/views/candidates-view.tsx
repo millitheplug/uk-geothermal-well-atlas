@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { cn } from "@/lib/utils";
 import {
   EmptyState,
   ErrorState,
@@ -43,7 +42,7 @@ import {
   humanise,
   scoreBand,
 } from "@/lib/domain";
-import { fmtDepth, fmtGBP } from "@/lib/utils";
+import { cn, fmtDepth, fmtGBP, wellKey } from "@/lib/utils";
 import type { CandidateRow, CandidateTable } from "@/types/api";
 
 /**
@@ -378,7 +377,7 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
       <TableCell className="whitespace-nowrap text-right text-muted-foreground">{row.rank}</TableCell>
       <TableCell className="min-w-[10.5rem]">
         <Link
-          href={`/wells/${row.well_id}`}
+          href={`/wells/${wellKey(row)}`}
           className="font-medium hover:text-primary hover:underline"
         >
           {row.well_name}
@@ -480,7 +479,7 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
       </TableCell>
       <TableCell>
         <Button variant="ghost" size="icon-sm" asChild>
-          <Link href={`/wells/${row.well_id}`} aria-label={`Open ${row.well_name}`}>
+          <Link href={`/wells/${wellKey(row)}`} aria-label={`Open ${row.well_name}`}>
             <ArrowRight className="h-3 w-3" aria-hidden />
           </Link>
         </Button>
@@ -563,7 +562,7 @@ function CandidateCard({ row }: { row: CandidateRow }) {
         <div className="min-w-0 flex-1">
           {/* Stretched link: the whole card opens the well. */}
           <Link
-            href={`/wells/${row.well_id}`}
+            href={`/wells/${wellKey(row)}`}
             className="block truncate font-semibold after:absolute after:inset-0 after:content-['']"
           >
             {row.well_name}

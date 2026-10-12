@@ -440,6 +440,7 @@ def _to_result(
     return AnalysisResult(
         analysis_id=analysis.id if analysis else None,
         well_id=well.well_id,
+        well_uuid=well.id,
         well_name=well.well_name,
         pipeline_version=assessment.pipeline_version,
         configuration=assessment.configuration,
@@ -510,6 +511,7 @@ def _analysis_to_result(db: DbSession, analysis: Analysis, well: Well | None = N
     result = AnalysisResult(
         analysis_id=analysis.id,
         well_id=well.well_id,
+        well_uuid=well.id,
         well_name=well.well_name,
         pipeline_version=analysis.engine_version or "0.1.0",
         configuration=analysis.recommended_configuration or GeothermalConfiguration.CLOSED_LOOP.value,

@@ -389,6 +389,8 @@ export const api = {
     return request<{
       corridors: Array<{
         well_id: string;
+        /** The key every well endpoint takes. `well_id` is the publisher's id. */
+        well_uuid?: string | null;
         well_name: string;
         /**
          * A `LineString`, not an arbitrary geometry: the backend builds these as
