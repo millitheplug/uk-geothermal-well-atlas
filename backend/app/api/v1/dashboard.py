@@ -136,11 +136,24 @@ def national_dashboard(
             "average temperature."
         )
     if include_mock:
-        caveats.insert(
-            0,
-            "This view includes synthetic development data. No well shown here "
-            "corresponds to a real UK borehole.",
-        )
+        # Whether "no real well is shown" is true depends on what is actually
+        # loaded, so the claim is made only when the real count is zero. A view
+        # holding both must not deny that the real records are real.
+        real_in_scope = count_where(~Well.source.like("mock_%"))
+        if real_in_scope:
+            caveats.insert(
+                0,
+                f"This view mixes synthetic development data with real published "
+                f"records: {real_in_scope} of {total} wells are real. Synthetic "
+                "figures are not measurements and must not be presented as real "
+                "well data.",
+            )
+        else:
+            caveats.insert(
+                0,
+                "This view includes synthetic development data. No well shown "
+                "here corresponds to a real UK borehole.",
+            )
 
     return NationalDashboard(
         total_wells=total,

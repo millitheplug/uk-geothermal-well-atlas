@@ -93,15 +93,15 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <AppSidebar isMock={isMock} className="hidden lg:flex" footer={account} />
+      <AppSidebar isMock={isMock} className="hidden md:flex" footer={account} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileTopBar isMock={isMock} className="lg:hidden" />
+        <MobileTopBar isMock={isMock} className="md:hidden" />
         <main id="main" className="flex min-h-0 min-w-0 flex-1 flex-col">
           {children}
         </main>
         <MobileTabBar
-          className="lg:hidden"
+          className="md:hidden"
           moreActive={moreActive}
           onMore={() => setSheetOpen(true)}
         />
@@ -150,7 +150,13 @@ function AccountMenu({
           {initialsOf(email)}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-white">
+          {/*
+            Not `truncate`: an address is the one thing here you cannot guess
+            the tail of, so clipping it hides real information. It wraps onto a
+            second line instead, and `break-all` because an email has no spaces
+            to break at.
+          */}
+          <span className="block break-all text-sm font-medium text-white">
             {email}
           </span>
           <span className="block truncate text-xs capitalize text-rail-muted">
