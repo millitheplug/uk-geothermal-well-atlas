@@ -214,7 +214,7 @@ export function MockDataBanner({
         </p>
         <p className="voice-note mt-1 text-[0.875rem] text-foreground/90">
           {what.charAt(0).toUpperCase() + what.slice(1)} come from a development
-          dataset. No well shown here corresponds to a real UK borehole, and
+          dataset. Synthetic figures are not measurements of real boreholes, and
           nothing on this screen may be presented as production well data.
         </p>
       </div>
