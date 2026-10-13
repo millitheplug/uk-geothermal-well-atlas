@@ -150,7 +150,13 @@ function AccountMenu({
           {initialsOf(email)}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-white">
+          {/*
+            Not `truncate`: an address is the one thing here you cannot guess
+            the tail of, so clipping it hides real information. It wraps onto a
+            second line instead, and `break-all` because an email has no spaces
+            to break at.
+          */}
+          <span className="block break-all text-sm font-medium text-white">
             {email}
           </span>
           <span className="block truncate text-xs capitalize text-rail-muted">
