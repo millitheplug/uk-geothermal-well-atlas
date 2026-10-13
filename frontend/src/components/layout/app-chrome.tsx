@@ -93,15 +93,15 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <AppSidebar isMock={isMock} className="hidden lg:flex" footer={account} />
+      <AppSidebar isMock={isMock} className="hidden md:flex" footer={account} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileTopBar isMock={isMock} className="lg:hidden" />
+        <MobileTopBar isMock={isMock} className="md:hidden" />
         <main id="main" className="flex min-h-0 min-w-0 flex-1 flex-col">
           {children}
         </main>
         <MobileTabBar
-          className="lg:hidden"
+          className="md:hidden"
           moreActive={moreActive}
           onMore={() => setSheetOpen(true)}
         />

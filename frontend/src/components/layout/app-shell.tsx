@@ -2,7 +2,7 @@
  * Shell components: the navigation rail, the phone tab bar, the page header and
  * the page frame.
  *
- * Two layouts share one list of destinations. From the `lg` breakpoint up there
+ * Two layouts share one list of destinations. From the `md` breakpoint up there
  * is a fixed rail with the destinations grouped by what the user is doing
  * (explore, analyse, manage). Below it the rail is replaced by a bottom tab bar
  * holding the four most-used pages and a "More" sheet for the rest, because a
@@ -186,7 +186,7 @@ export function SyntheticBadge({ className }: { className?: string }) {
   );
 }
 
-/** Left navigation rail, shown from the `lg` breakpoint up. */
+/** Left navigation rail, shown from the `md` breakpoint up. */
 export function AppSidebar({
   isMock,
   className,
