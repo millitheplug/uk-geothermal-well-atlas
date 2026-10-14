@@ -216,6 +216,32 @@ class AgentOrchestrator:
         enriched["next_action"] = assessment.next_action
         enriched["data_gaps"] = assessment.data_gaps
         enriched["unknowns"] = assessment.unknowns
+
+        # Economic outputs the pipeline already produced. The report sections and
+        # the agent payloads both read these from the context, so they have to be
+        # passed through here: without them every economic section renders its
+        # "Not estimated"/"Not calculated" wording no matter what was computed,
+        # and the report ends up contradicting its own recommendation.
+        enriched["capex_gbp"] = assessment.capex_gbp
+        enriched["opex_gbp_per_year"] = assessment.opex_gbp_per_year
+        enriched["lcoh_p_per_kwh"] = assessment.lcoh_p_per_kwh
+        enriched["npv_gbp"] = assessment.npv_gbp
+        enriched["irr_pct"] = assessment.irr_pct
+        enriched["payback_years"] = assessment.payback_years
+        enriched["break_even_heat_price_p_per_kwh"] = (
+            assessment.break_even_heat_price_p_per_kwh
+        )
+
+        # The report quotes the assumed heat price next to LCOH. It is an input
+        # that lives under `parameters["values"]`, while the template reads it
+        # top-level, so surface it here rather than render "None p/kWh".
+        _param_values = assessment.parameters.get("values")
+        enriched["heat_price_p_per_kwh"] = (
+            _param_values.get("heat_price_p_per_kwh")
+            if isinstance(_param_values, dict)
+            else None
+        )
+
         enriched["risk"] = (
             assessment.risk_assessment.to_dict() if assessment.risk_assessment else {}
         )
