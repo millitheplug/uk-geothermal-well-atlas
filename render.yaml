@@ -9,7 +9,12 @@ services:
     rootDir: backend
     buildCommand: pip install .
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /api/v1/admin/health
+    # Liveness, not readiness. `/api/v1/admin/health` queries the database, so
+    # using it here makes any database problem fail the whole deploy even though
+    # the process is up - and app/main.py asks for the two to be wired
+    # separately for exactly that reason. Readiness stays available to anyone
+    # who wants to probe it deliberately.
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
