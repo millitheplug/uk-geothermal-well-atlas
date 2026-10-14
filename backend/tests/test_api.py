@@ -281,7 +281,13 @@ class TestAuthentication:
         )
         assert response.status_code == 200
 
-    def test_login_with_wrong_password_is_rejected(self, client: TestClient):
+    def test_login_with_wrong_password_is_rejected(
+        self, client: TestClient, admin_token: str
+    ):
+        # The fixture is declared rather than left to the module's autouse token
+        # registration. The endpoint returns one message for both a missing
+        # account and a wrong password - see the next test - so without a
+        # guaranteed account this passes against a database with no users in it.
         response = client.post(
             "/api/v1/auth/login",
             json={"email": "api-admin@example.com", "password": "wrong-password-entirely"},
@@ -298,7 +304,18 @@ class TestAuthentication:
         assert response.status_code == 401
         assert "invalid email or password" in response.json()["detail"]
 
-    def test_login_with_correct_credentials_issues_a_token(self, client: TestClient):
+    def test_login_with_correct_credentials_issues_a_token(
+        self, client: TestClient, admin_token: str
+    ):
+        """Exchanging a real account's credentials for a token.
+
+        ``admin_token`` is declared so the account this test logs in as is
+        created by its own fixture chain rather than by whatever the module's
+        autouse registration happened to run first. This is the only one of the
+        three login tests that can fail when the account is absent - it is also
+        the one that has failed that way - so its guarantee is what the other two
+        are relying on.
+        """
         response = client.post(
             "/api/v1/auth/login",
             json={
