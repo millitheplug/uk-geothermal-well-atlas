@@ -69,7 +69,7 @@ Python project file. Open the service's **Settings** and check:
 | Setting | Value |
 |---|---|
 | Root Directory | `backend` |
-| Build Command | `pip install .` |
+| Build Command | `pip install . && alembic upgrade head` |
 | Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 
 A root-level `requirements.txt` also lets a build from the repository root succeed,

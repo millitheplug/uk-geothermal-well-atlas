@@ -7,7 +7,11 @@ services:
     plan: free
     region: frankfurt
     rootDir: backend
-    buildCommand: pip install .
+    # The build step is the release step: it applies pending migrations once per
+    # deploy, before the new version starts, so there is no race between
+    # replicas. Render exposes the service's environment variables at build
+    # time, so DATABASE_URL and SECRET_KEY are available to Alembic here.
+    buildCommand: pip install . && alembic upgrade head
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     # Liveness, not readiness. `/api/v1/admin/health` queries the database, so
     # using it here makes any database problem fail the whole deploy even though
