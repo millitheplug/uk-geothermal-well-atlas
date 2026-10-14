@@ -33,11 +33,29 @@ def health(db: DbSession) -> HealthResponse:
     silently fell back to SQLite or to the mock agent is a deployment nobody
     wants to discover during a review.
     """
+    # Both queries sit inside the same guard. The mock-row count used to live
+    # outside it, so an unreachable database raised straight out of the endpoint
+    # and returned a bare 500: the graceful "degraded" readout below was never
+    # built, and any platform health check wired to this path saw an empty error
+    # instead of learning that the database was the thing at fault.
     try:
         db.execute(select(func.count()).select_from(Dataset))
         database = "postgresql" if db.get_bind().dialect.name == "postgresql" else "sqlite"
+        # Report mock data from the wells themselves rather than from dataset
+        # rows: a dataset can be registered without any of its rows having
+        # landed, and a health check that says "mock data present" when none is
+        # would send a reviewer looking in the wrong place.
+        mock_rows = (
+            db.scalar(
+                select(func.count()).select_from(
+                    select(Well.id).where(Well.source.like("mock_%")).subquery()
+                )
+            )
+            or 0
+        )
     except SQLAlchemyError:
         database = "unavailable"
+        mock_rows = 0
 
     if not settings.ai_enabled:
         llm = "disabled"
@@ -45,16 +63,6 @@ def health(db: DbSession) -> HealthResponse:
         llm = "anthropic"
     else:
         llm = "mock"
-
-    # Report mock data from the wells themselves rather than from dataset rows:
-    # a dataset can be registered without any of its rows having landed, and a
-    # health check that says "mock data present" when none is would send a
-    # reviewer looking in the wrong place.
-    mock_rows = db.scalar(
-        select(func.count()).select_from(
-            select(Well.id).where(Well.source.like("mock_%")).subquery()
-        )
-    ) or 0
 
     return HealthResponse(
         status="ok" if database != "unavailable" else "degraded",

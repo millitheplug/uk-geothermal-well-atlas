@@ -211,6 +211,44 @@ class TestHealth:
         body = client.get("/api/v1/admin/health").json()
         assert body["is_mock_data"] is True
 
+    def test_health_degrades_when_the_database_is_unreachable(self, client: TestClient):
+        """A dead database must be reported, not raised.
+
+        The mock-row count used to sit outside the endpoint's guard, so an
+        unreachable database raised straight through it and returned a bare 500
+        with an empty body. The designed "degraded" readout never appeared, and
+        a platform health check wired to this path could not tell a dead
+        database from a dead process - it just saw an opaque failure.
+        """
+        from sqlalchemy.exc import OperationalError
+
+        from app.db.session import engine, get_db
+
+        class _UnreachableSession:
+            """Cannot reach the data, but still knows its own dialect."""
+
+            def execute(self, *_args: object, **_kwargs: object):
+                raise OperationalError("SELECT 1", {}, Exception("database is down"))
+
+            def scalar(self, *_args: object, **_kwargs: object):
+                raise OperationalError("SELECT 1", {}, Exception("database is down"))
+
+            def get_bind(self):
+                # No connection needed to read the dialect name.
+                return engine
+
+        client.app.dependency_overrides[get_db] = lambda: _UnreachableSession()
+        try:
+            response = client.get("/api/v1/admin/health")
+        finally:
+            client.app.dependency_overrides.pop(get_db, None)
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["status"] == "degraded"
+        assert body["database"] == "unavailable"
+        assert body["is_mock_data"] is False
+
     def test_root_exposes_docs(self, client: TestClient):
         body = client.get("/").json()
         assert body["docs"] == "/api/docs"
@@ -1321,7 +1359,7 @@ class TestAdmin:
             for key in ("source", "version", "quality_score", "is_mock", "licence"):
                 assert key in dataset
 
-    def test_mock_datasets_are_disclosed(self, client: TestClient):
+    def test_mock_datasets_are_disclosed(self, client: TestClient, loaded_data: dict):
         body = client.get("/api/v1/admin/datasets", headers=self._headers()).json()
         assert body["counts"]["mock"] > 0
         assert body["note"]
@@ -1362,12 +1400,14 @@ class TestAdmin:
         )
         assert response.status_code == 404
 
-    def test_prices_include_decomposition(self, client: TestClient):
+    def test_prices_include_decomposition(self, client: TestClient, loaded_data: dict):
         body = client.get("/api/v1/admin/prices", headers=self._headers()).json()
         assert body["count"] > 0
         assert any(p["price_basis"] for p in body["prices"])
 
-    def test_heat_price_is_flagged_as_assumption(self, client: TestClient):
+    def test_heat_price_is_flagged_as_assumption(
+        self, client: TestClient, loaded_data: dict
+    ):
         body = client.get(
             "/api/v1/admin/prices",
             headers=self._headers(),
@@ -1375,7 +1415,9 @@ class TestAdmin:
         ).json()
         assert all(p["status"] == "ASSUMPTION" for p in body["prices"])
 
-    def test_regulatory_lead_times_are_caveated(self, client: TestClient):
+    def test_regulatory_lead_times_are_caveated(
+        self, client: TestClient, loaded_data: dict
+    ):
         body = client.get("/api/v1/admin/regulatory", headers=self._headers()).json()
         assert body["count"] > 0
         assert "engineering estimates" in body["caveat"]
@@ -1386,7 +1428,9 @@ class TestAdmin:
         for spec in body["parameters"]:
             assert spec["rationale"], spec["key"]
 
-    def test_configuration_filter_on_regulatory(self, client: TestClient):
+    def test_configuration_filter_on_regulatory(
+        self, client: TestClient, loaded_data: dict
+    ):
         closed = client.get(
             "/api/v1/admin/regulatory",
             headers=self._headers(),
