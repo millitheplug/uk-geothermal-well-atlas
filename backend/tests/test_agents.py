@@ -667,6 +667,80 @@ class TestReportRendering:
         assert result.report_markdown.count("## Executive summary") == 1
 
 
+def _report_section(markdown: str, title: str) -> str:
+    """The body of one ``##`` section, so an assertion cannot leak into the next."""
+    body, active = [], False
+    for line in markdown.splitlines():
+        if line.startswith("## "):
+            active = line.strip() == f"## {title}"
+            continue
+        if active:
+            body.append(line)
+    return "\n".join(body).strip()
+
+
+class TestEconomicSectionsReportWhatWasComputed:
+    """The economic sections read from the agent context, not the assessment.
+
+    `_enrich_context` copies forty-odd fields off the assessment but omitted
+    capex, opex, LCOH, NPV and IRR, so all five sections rendered their absent
+    wording for figures the pipeline had computed. The report then contradicted
+    itself: the final recommendation quoted the very LCOH that the LCOH section
+    claimed did not exist. Understating rather than overstating, but wrong.
+    """
+
+    _run = TestOrchestration._run
+
+    def test_enriched_context_carries_the_economics(self):
+        """The root cause: the values never reached any of the readers."""
+        assessment = assess_well(_good_well())
+        ctx = AgentOrchestrator(prefer_mock=True)._enrich_context(assessment, _context())
+        for key in ("capex_gbp", "opex_gbp_per_year", "lcoh_p_per_kwh", "npv_gbp", "irr_pct"):
+            assert key in ctx, key
+            assert ctx[key] == getattr(assessment, key), key
+
+    def test_capex_section_shows_the_computed_figure(self):
+        _, assessment, result = self._run()
+        section = _report_section(result.report_markdown, "CAPEX")
+        assert f"GBP {assessment.capex_gbp:,.0f}" in section
+        assert "Not estimated." not in section
+
+    def test_opex_section_shows_the_computed_figure(self):
+        _, assessment, result = self._run()
+        section = _report_section(result.report_markdown, "OPEX")
+        assert f"GBP {assessment.opex_gbp_per_year:,.0f}" in section
+        assert "Not estimated." not in section
+
+    def test_lcoh_section_shows_the_computed_figure(self):
+        _, assessment, result = self._run()
+        section = _report_section(result.report_markdown, "LCOH")
+        assert f"{assessment.lcoh_p_per_kwh:.1f} p/kWh" in section
+        assert "Not calculated." not in section
+
+    def test_npv_section_shows_the_computed_figure(self):
+        _, assessment, result = self._run()
+        section = _report_section(result.report_markdown, "NPV")
+        assert f"GBP {assessment.npv_gbp:,.0f}" in section
+        assert "Not calculated." not in section
+
+    def test_irr_section_shows_the_computed_figure(self):
+        _, assessment, result = self._run()
+        section = _report_section(result.report_markdown, "IRR")
+        assert f"{assessment.irr_pct:.1f}%" in section
+        assert "No valid IRR exists" not in section
+
+    def test_the_assumed_heat_price_is_rendered_as_a_number(self):
+        """It lives under `parameters["values"]`, not at the top level.
+
+        Reading it top-level yields None and the LCOH sentence prints
+        "None p/kWh", which is worse than quoting no figure at all.
+        """
+        _, assessment, result = self._run()
+        heat_price = assessment.parameters["values"]["heat_price_p_per_kwh"]
+        assert "None p/kWh" not in result.report_markdown
+        assert f"assumed heat price of {heat_price} p/kWh" in result.report_markdown
+
+
 class TestMockProviderBehaviour:
     def test_mock_derives_content_from_the_context(self):
         """The mock must produce genuinely useful output, not filler."""
