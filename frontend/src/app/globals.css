@@ -284,3 +284,140 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/**
+ * Print output for Export PDF.
+ *
+ * The report is portalled to the end of `<body>`, so hiding everything else on
+ * the page removes the navigation, the tabs and the scrolling frame in one
+ * stroke and leaves the document to paginate normally.
+ *
+ * Suppression is keyed on `body.has-print-report` rather than applied
+ * unconditionally. Printing any other page - or this one before the report has
+ * mounted - would otherwise hide every element on it and feed the printer blank
+ * paper.
+ *
+ * Colours are forced rather than inherited. The interface is themed: in the
+ * dark theme a report inherits white text, and white text on the white sheet a
+ * printer provides is an empty document.
+ */
+.print-report {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body.has-print-report > *:not(.print-report) {
+    display: none !important;
+  }
+
+  .print-report {
+    display: block !important;
+    box-sizing: border-box;
+    width: 100%;
+    color: #14181d !important;
+    background: #fff !important;
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+  }
+
+  .print-report * {
+    color: #14181d !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .print-report__header {
+    border-bottom: 1px solid #c8ccd2;
+    margin-bottom: 14pt;
+    padding-bottom: 6pt;
+  }
+
+  .print-report__platform {
+    color: #5b6169 !important;
+    font-size: 8.5pt;
+    letter-spacing: 0.08em;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .print-report__well {
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 3pt 0 0;
+  }
+
+  .print-report__notice {
+    border-left: 2px solid #c8ccd2;
+    color: #3d434a !important;
+    font-size: 9pt;
+    font-style: italic;
+    line-height: 1.4;
+    margin: 6pt 0 0;
+    padding-left: 7pt;
+  }
+
+  .print-report h1 {
+    font-size: 18pt;
+    line-height: 1.2;
+    margin: 0 0 4pt;
+  }
+
+  .print-report h2 {
+    border-bottom: 1px solid #e2e5e9;
+    break-after: avoid;
+    font-size: 12.5pt;
+    margin: 15pt 0 5pt;
+    padding-bottom: 2pt;
+  }
+
+  .print-report h3 {
+    break-after: avoid;
+    font-size: 11pt;
+    margin: 11pt 0 3pt;
+  }
+
+  .print-report h4 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    margin: 9pt 0 2pt;
+  }
+
+  .print-report p {
+    margin: 0 0 6pt;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .print-report ul,
+  .print-report ol {
+    margin: 0 0 6pt;
+    padding-left: 16pt;
+  }
+
+  .print-report li {
+    margin-bottom: 2pt;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .print-report hr {
+    border: 0;
+    border-top: 1px solid #c8ccd2;
+    margin: 10pt 0;
+  }
+
+  .print-report strong {
+    font-weight: 700;
+  }
+}
