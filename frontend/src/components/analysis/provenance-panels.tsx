@@ -18,6 +18,7 @@ import {
   Download,
   ExternalLink,
   Gavel,
+  Printer,
   ScrollText,
   Sigma,
   Sparkles,
@@ -40,8 +41,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PrintableReport, printReport } from "@/components/analysis/report-print";
 import { EmptyState, SectionTitle } from "@/components/common/feedback";
 import { humanise } from "@/lib/domain";
+import { slugifyWellName } from "@/lib/report-markdown";
 import { cn } from "@/lib/utils";
 import type {
   CalculationTrace,
@@ -544,11 +547,7 @@ export function ValidationPanel({ actions }: { actions: ValidationAction[] }) {
  * well it assessed is one waiting to be misquoted.
  */
 function downloadReport(markdown: string, wellName?: string | null): void {
-  const slug =
-    (wellName ?? "well")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "well";
+  const slug = slugifyWellName(wellName);
 
   const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -619,7 +618,7 @@ export function AgentPanel({
 
         {reportMarkdown && (
           <div className="space-y-2">
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-wrap items-start justify-between gap-2">
               <details>
                 <summary className="cursor-pointer text-xs font-medium text-primary">
                   <span className="inline-flex items-center gap-1.5">
@@ -631,22 +630,39 @@ export function AgentPanel({
                   {reportMarkdown}
                 </pre>
               </details>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0"
-                onClick={() => downloadReport(reportMarkdown, wellName)}
-              >
-                <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                Download .md
-              </Button>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadReport(reportMarkdown, wellName)}
+                >
+                  <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                  Download .md
+                </Button>
+                {/*
+                  Same document, paper form. It opens the print dialog rather
+                  than downloading, because the browser owns the PDF and so the
+                  reader keeps the choice of page size and destination.
+                */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={printReport}
+                  title="Opens your browser's print dialog - choose Save as PDF"
+                >
+                  <Printer className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                  Export PDF
+                </Button>
+              </div>
             </div>
             <p className="text-[12px] leading-relaxed text-muted-foreground">
               Screening output from desk-study data. It is not a statement of
               commercial viability, and no figure in it substitutes for
               engineering sign-off.
             </p>
+            <PrintableReport markdown={reportMarkdown} wellName={wellName} />
           </div>
         )}
       </CardContent>
