@@ -41,9 +41,8 @@ import {
   isActivePath,
 } from "@/components/layout/app-shell";
 import { useApp } from "@/components/providers/app-provider";
+import { isPublicAuthRoute } from "@/lib/auth-routes";
 import { cn } from "@/lib/utils";
-
-const BARE_ROUTES = ["/sign-in"];
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const { user, loading, isMock, health, signOut } = useApp();
@@ -51,7 +50,10 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = React.useState(false);
 
-  const bare = BARE_ROUTES.some((route) => pathname?.startsWith(route));
+  // The auth screens render without a session. Everything else waits for one,
+  // because a stranger landing on an empty dashboard concludes the platform is
+  // broken rather than that their account is new.
+  const bare = isPublicAuthRoute(pathname);
 
   React.useEffect(() => {
     if (loading || user || bare) return;

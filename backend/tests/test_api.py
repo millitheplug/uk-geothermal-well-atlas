@@ -342,6 +342,191 @@ class TestAuthentication:
             validate_password_strength("short")
 
 
+class TestRegistration:
+    """What an unauthenticated stranger can create, and what limits them.
+
+    Every test uses its own address and organisation. The suite runs in a
+    randomised order and these tests leave real rows behind, so a shared email
+    would make whichever one shuffled to second fail on the duplicate check for
+    a reason that has nothing to do with what it is asserting.
+    """
+
+    @staticmethod
+    def _payload(**overrides: object) -> dict:
+        stem = uuid.uuid4().hex[:12]
+        payload: dict = {
+            "email": f"signup-{stem}@example.org",
+            "password": "a-long-passphrase-for-signing-up",
+            "full_name": "New Sign-Up",
+            "organisation": f"Org {stem}",
+        }
+        payload.update(overrides)
+        return payload
+
+    @staticmethod
+    def _register(client: TestClient, payload: dict):
+        return client.post("/api/v1/auth/register", json=payload)
+
+    @staticmethod
+    def _headers_for(token: str) -> dict:
+        return {"Authorization": f"Bearer {token}"}
+
+    def test_register_creates_an_account_and_returns_a_working_token(
+        self, client: TestClient
+    ):
+        payload = self._payload()
+        response = self._register(client, payload)
+
+        assert response.status_code == 201, response.text
+        body = response.json()
+        assert body["token_type"] == "bearer"
+        assert body["expires_in"] > 0
+        assert body["user"]["email"] == payload["email"]
+        assert body["user"]["full_name"] == "New Sign-Up"
+        # The creator administers the organisation it just created.
+        assert body["user"]["role"] == "owner"
+
+        # The token is real, not merely a plausible shape.
+        me = client.get(
+            "/api/v1/auth/me", headers=self._headers_for(body["access_token"])
+        )
+        assert me.status_code == 200
+        assert me.json()["email"] == payload["email"]
+
+    def test_the_address_is_normalised_so_case_cannot_duplicate_it(
+        self, client: TestClient
+    ):
+        assert self._register(
+            client, self._payload(email="Mixed.Case@Example.org")
+        ).status_code == 201
+
+        # The same address in a different case is the same person, not a second
+        # organisation - login finds an account by address alone.
+        second = self._register(client, self._payload(email="MIXED.CASE@example.org"))
+        assert second.status_code == 409
+
+    def test_the_same_address_cannot_register_twice(self, client: TestClient):
+        payload = self._payload()
+        assert self._register(client, payload).status_code == 201
+
+        second = self._register(client, payload)
+        assert second.status_code == 409
+        assert "already exists" in second.json()["detail"]
+
+    def test_a_new_account_starts_in_its_own_organisation(self, client: TestClient):
+        from tests.conftest import DEV_TENANT_ID
+
+        created = self._register(client, self._payload()).json()
+        me = client.get(
+            "/api/v1/auth/me", headers=self._headers_for(created["access_token"])
+        ).json()
+
+        assert me["tenant_id"] != str(DEV_TENANT_ID)
+
+    def test_a_new_account_sees_none_of_another_tenants_work(
+        self, client: TestClient
+    ):
+        """Registration must not hand a stranger anyone else's data.
+
+        Asserted as emptiness rather than a count, so the test holds whichever
+        order the randomised suite runs in: analyses and projects belong to
+        whichever tenant created them, and this one has created none.
+        """
+        created = self._register(client, self._payload()).json()
+        headers = self._headers_for(created["access_token"])
+
+        assert client.get("/api/v1/analyses", headers=headers).json() == []
+        assert client.get("/api/v1/projects", headers=headers).json() == []
+
+    def test_a_short_password_is_refused_before_the_handler_runs(
+        self, client: TestClient
+    ):
+        """The schema and the validator must promise the same minimum.
+
+        ``validate_password_strength`` demands 12 characters. If the field
+        advertised fewer, a password the endpoint accepted on the way in would
+        be rejected a moment later by code that never saw the request - so the
+        schema is tested against the validator rather than against a copy of
+        its number.
+        """
+        from pydantic import ValidationError
+
+        from app.core.security import validate_password_strength
+        from app.schemas.well import RegisterRequest
+
+        with pytest.raises(ValidationError):
+            RegisterRequest(email="a@example.org", password="x" * 11)
+
+        RegisterRequest(email="a@example.org", password="x" * 12)
+        validate_password_strength("x" * 12)  # must not raise
+
+        # Deliberately too short; the assertion is that it is refused.
+        weak = self._payload(password="too-short")  # noqa: S106 -- must be refused
+        assert self._register(client, weak).status_code == 422
+
+    def test_two_signups_from_one_organisation_name_get_different_slugs(
+        self, client: TestClient
+    ):
+        """``tenants.slug`` is unique, so a shared name must be numbered.
+
+        Registration is the only path where a caller influences this value, and
+        a collision is otherwise a 500 on a form a stranger can submit.
+        """
+        from app.db.session import SessionLocal
+        from app.models.user import Tenant
+
+        name = f"Slug Probe {uuid.uuid4().hex[:8]}"
+        first = self._register(client, self._payload(organisation=name))
+        second = self._register(client, self._payload(organisation=name))
+        assert first.status_code == 201, first.text
+        assert second.status_code == 201, second.text
+
+        with SessionLocal() as session:
+            slugs = [
+                t.slug
+                for t in session.query(Tenant).filter(Tenant.name == name).all()
+            ]
+
+        assert len(slugs) == 2
+        assert len(set(slugs)) == 2
+
+    def test_the_rate_limit_key_takes_the_address_the_proxy_saw(self):
+        """A reverse proxy is the client from the app's point of view.
+
+        Keying on ``request.client.host`` behind one would put every visitor in
+        a single shared bucket. The chain is read from the right, where the
+        proxy appended the peer it actually saw, so an entry a client supplies
+        for itself cannot buy a fresh one.
+        """
+        from fastapi import Request
+
+        from app.api.v1.auth import _rate_limit_key
+
+        forwarded = Request(
+            {
+                "type": "http",
+                "method": "POST",
+                "path": "/api/v1/auth/register",
+                "query_string": b"",
+                "headers": [(b"x-forwarded-for", b"198.51.100.7, 203.0.113.9")],
+                "client": ("10.0.0.1", 40000),
+            }
+        )
+        assert _rate_limit_key(forwarded) == "203.0.113.9"
+
+        direct = Request(
+            {
+                "type": "http",
+                "method": "POST",
+                "path": "/api/v1/auth/register",
+                "query_string": b"",
+                "headers": [],
+                "client": ("127.0.0.1", 40000),
+            }
+        )
+        assert _rate_limit_key(direct) == "127.0.0.1"
+
+
 class TestTenantIsolation:
     def test_wells_are_invisible_without_a_project(
         self, client: TestClient, unclaimed_tenant_token: str

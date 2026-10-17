@@ -10,7 +10,7 @@
 
 import * as React from "react";
 
-import { api, getToken, setToken } from "@/lib/api";
+import { api, getToken, setToken, type RegisterInput } from "@/lib/api";
 import type { Health, User } from "@/types/api";
 
 interface AppState {
@@ -21,6 +21,8 @@ interface AppState {
   /** True when any contributing dataset is synthetic development data. */
   isMock: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Create an organisation and its first account, signed in immediately after. */
+  signUp: (input: RegisterInput) => Promise<void>;
   signOut: () => void;
   refreshHealth: () => Promise<void>;
 }
@@ -85,6 +87,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await refreshHealth();
   }, [refreshHealth]);
 
+  /**
+   * Registration returns a token like login does, so the account it just
+   * created is signed in by the same two steps rather than a second path that
+   * could forget to refresh the health readout.
+   */
+  const signUp = React.useCallback(
+    async (input: RegisterInput) => {
+      const result = await api.register(input);
+      setUser(result.user);
+      await refreshHealth();
+    },
+    [refreshHealth],
+  );
+
   const signOut = React.useCallback(() => {
     api.logout();
     setUser(null);
@@ -97,10 +113,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loading,
       isMock: health?.is_mock_data ?? false,
       signIn,
+      signUp,
       signOut,
       refreshHealth,
     }),
-    [user, health, loading, signIn, signOut, refreshHealth],
+    [user, health, loading, signIn, signUp, signOut, refreshHealth],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

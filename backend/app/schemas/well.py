@@ -715,6 +715,26 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class RegisterRequest(BaseModel):
+    """Create an organisation and the account that administers it.
+
+    The password minimum is 12 rather than the 8 ``LoginRequest`` accepts,
+    because ``validate_password_strength`` enforces 12. Promising 8 in the field
+    and rejecting it a moment later would be a contract the endpoint cannot keep.
+
+    ``organisation`` is optional: the tenant it names is created alongside the
+    user, and a sign-up without one falls back to something derived from the
+    address rather than failing.
+    """
+
+    email: str = Field(max_length=320)
+    password: str = Field(min_length=12, max_length=256)
+    full_name: str = Field(default="", max_length=255)
+    organisation: str = Field(default="", max_length=255)
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"  # noqa: S105 -- the OAuth2 scheme name, not a secret

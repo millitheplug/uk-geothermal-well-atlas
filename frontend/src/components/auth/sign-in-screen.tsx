@@ -15,6 +15,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -243,10 +244,24 @@ export function SignInScreen() {
             </p>
           </form>
 
-          <details className="group mt-6 border-t pt-4 text-sm text-muted-foreground">
+          {/* The sign-up link is deliberately outside the form: it is the one
+              thing on this page that is not a credential. */}
+          <p className="mt-6 border-t pt-4 text-sm text-muted-foreground">
+            No account yet?{" "}
+            <Link
+              href="/sign-up"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              Create one
+            </Link>
+            . It needs an email and a password, and you start in an
+            organisation of your own.
+          </p>
+
+          <details className="group mt-4 text-sm text-muted-foreground">
             <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 font-medium text-foreground [&::-webkit-details-marker]:hidden">
               <KeyRound className="h-4 w-4" aria-hidden />
-              No account yet?
+              Running this from source?
               <span className="ml-auto text-xs font-normal text-muted-foreground group-open:hidden">
                 Show setup steps
               </span>

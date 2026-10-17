@@ -203,12 +203,37 @@ export interface WellSearchParams {
   descending?: boolean;
 }
 
+export interface RegisterInput {
+  email: string;
+  password: string;
+  /** Falls back to the local part of the address when omitted. */
+  full_name?: string;
+  /** Names the organisation created alongside the account. */
+  organisation?: string;
+}
+
 export const api = {
   // ---- auth ------------------------------------------------------------
   async login(email: string, password: string): Promise<TokenResponse> {
     const result = await request<TokenResponse>("/auth/login", {
       method: "POST",
       body: { email, password },
+      authenticated: false,
+    });
+    setToken(result.access_token);
+    return result;
+  },
+
+  /**
+   * Create an organisation and the account that administers it.
+   *
+   * Returns a token in exactly the shape login does, so a new account is signed
+   * in by the same code path rather than a second one that could drift from it.
+   */
+  async register(input: RegisterInput): Promise<TokenResponse> {
+    const result = await request<TokenResponse>("/auth/register", {
+      method: "POST",
+      body: input,
       authenticated: false,
     });
     setToken(result.access_token);
