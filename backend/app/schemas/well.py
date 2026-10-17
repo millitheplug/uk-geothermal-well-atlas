@@ -715,6 +715,35 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class RegisterRequest(BaseModel):
+    """Self-service sign-up. Creates a new organisation with the caller as owner."""
+
+    full_name: str = Field(min_length=1, max_length=255)
+    email: str = Field(min_length=3, max_length=320)
+    organisation: str = Field(min_length=2, max_length=255)
+    password: str = Field(min_length=8, max_length=256)
+    password_confirm: str = Field(max_length=256)
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("full_name", "organisation")
+    @classmethod
+    def _strip_required(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if not value:
+            raise ValueError("must not be blank")
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def _valid_email(cls, value: str) -> str:
+        value = value.strip().lower()
+        local, _, domain = value.partition("@")
+        if not local or "." not in domain or domain.startswith(".") or domain.endswith(".") or " " in value:
+            raise ValueError("enter a valid email address")
+        return value
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"  # noqa: S105 -- the OAuth2 scheme name, not a secret

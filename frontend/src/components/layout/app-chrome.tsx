@@ -43,7 +43,7 @@ import {
 import { useApp } from "@/components/providers/app-provider";
 import { cn } from "@/lib/utils";
 
-const BARE_ROUTES = ["/sign-in"];
+const BARE_ROUTES = ["/sign-in", "/sign-up"];
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const { user, loading, isMock, health, signOut } = useApp();

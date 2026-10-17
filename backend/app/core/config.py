@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     secret_key: str = _DEVELOPMENT_SECRET_KEY
     jwt_algorithm: str = "HS256"
     access_token_ttl_minutes: int = 60 * 12
+    # Public self-service sign-up. Turn off (ALLOW_REGISTRATION=false) to make
+    # the deployment invitation-only once the people who need accounts have them.
+    allow_registration: bool = True
     # NoDecode stops pydantic-settings JSON-parsing the variable before the
     # validator below runs; without it a plain comma-separated value (the
     # documented format) crashes the app at startup.

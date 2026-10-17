@@ -15,6 +15,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -243,10 +244,18 @@ export function SignInScreen() {
             </p>
           </form>
 
-          <details className="group mt-6 border-t pt-4 text-sm text-muted-foreground">
+          <p className="mt-6 border-t pt-4 text-sm text-muted-foreground">
+            New here?{" "}
+            <Link href="/sign-up" className="font-medium text-foreground underline">
+              Create an account
+            </Link>{" "}
+            and your own workspace.
+          </p>
+
+          <details className="group mt-4 border-t pt-4 text-sm text-muted-foreground">
             <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 font-medium text-foreground [&::-webkit-details-marker]:hidden">
               <KeyRound className="h-4 w-4" aria-hidden />
-              No account yet?
+              Running it locally?
               <span className="ml-auto text-xs font-normal text-muted-foreground group-open:hidden">
                 Show setup steps
               </span>

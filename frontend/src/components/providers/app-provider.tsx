@@ -10,7 +10,7 @@
 
 import * as React from "react";
 
-import { api, getToken, setToken } from "@/lib/api";
+import { api, getToken, setToken, type RegisterPayload } from "@/lib/api";
 import type { Health, User } from "@/types/api";
 
 interface AppState {
@@ -21,6 +21,8 @@ interface AppState {
   /** True when any contributing dataset is synthetic development data. */
   isMock: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Create an account and organisation; the new user is signed in on success. */
+  register: (payload: RegisterPayload) => Promise<void>;
   signOut: () => void;
   refreshHealth: () => Promise<void>;
 }
@@ -85,6 +87,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await refreshHealth();
   }, [refreshHealth]);
 
+  const register = React.useCallback(
+    async (payload: RegisterPayload) => {
+      const result = await api.register(payload);
+      setUser(result.user);
+      await refreshHealth();
+    },
+    [refreshHealth],
+  );
+
   const signOut = React.useCallback(() => {
     api.logout();
     setUser(null);
@@ -97,10 +108,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loading,
       isMock: health?.is_mock_data ?? false,
       signIn,
+      register,
       signOut,
       refreshHealth,
     }),
-    [user, health, loading, signIn, signOut, refreshHealth],
+    [user, health, loading, signIn, register, signOut, refreshHealth],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -32,6 +32,15 @@ const API_BASE =
 
 const TOKEN_KEY = "ukgeothermal.token";
 
+/** Body of `POST /auth/register`. */
+export interface RegisterPayload {
+  full_name: string;
+  email: string;
+  organisation: string;
+  password: string;
+  password_confirm: string;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -99,6 +108,47 @@ interface RequestOptions {
   authenticated?: boolean;
 }
 
+/**
+ * Turn an error body into a sentence a person can act on.
+ *
+ * FastAPI returns `detail` as a string for errors the API raises itself and as
+ * a list of `{ loc, msg }` objects for request validation. Stringifying the
+ * list gives "[object Object]", so the messages are pulled out instead.
+ */
+function describeFailure(body: unknown, status: number): string {
+  const fallback = `Request failed with status ${status}`;
+  if (typeof body !== "object" || body === null || !("detail" in body)) {
+    return fallback;
+  }
+  const detail = (body as { detail: unknown }).detail;
+
+  // The API's own validation handler: { detail: "request validation failed",
+  // errors: [{ field, message }] }. Show the specific messages, not the stub.
+  const errors = (body as { errors?: unknown }).errors;
+  if (Array.isArray(errors) && errors.length > 0) {
+    const messages = errors
+      .map((item) =>
+        typeof item === "object" && item !== null && "message" in item
+          ? String((item as { message: unknown }).message).replace(/^Value error, /, "")
+          : "",
+      )
+      .filter(Boolean);
+    if (messages.length) return messages.join(". ");
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) =>
+        typeof item === "object" && item !== null && "msg" in item
+          ? String((item as { msg: unknown }).msg).replace(/^Value error, /, "")
+          : "",
+      )
+      .filter(Boolean);
+    return messages.length ? messages.join(". ") : fallback;
+  }
+  return String(detail);
+}
+
 async function request<T>(
   path: string,
   options: RequestOptions = {},
@@ -143,10 +193,7 @@ async function request<T>(
       detail = await response.text().catch(() => undefined);
     }
 
-    const message =
-      typeof detail === "object" && detail !== null && "detail" in detail
-        ? String((detail as { detail: unknown }).detail)
-        : `Request failed with status ${response.status}`;
+    const message = describeFailure(detail, response.status);
 
     throw new ApiError(
       message,
@@ -209,6 +256,20 @@ export const api = {
     const result = await request<TokenResponse>("/auth/login", {
       method: "POST",
       body: { email, password },
+      authenticated: false,
+    });
+    setToken(result.access_token);
+    return result;
+  },
+
+  /**
+   * Create an account and its own organisation. The API signs the new user in,
+   * so the token is stored exactly as it is after a login.
+   */
+  async register(payload: RegisterPayload): Promise<TokenResponse> {
+    const result = await request<TokenResponse>("/auth/register", {
+      method: "POST",
+      body: payload,
       authenticated: false,
     });
     setToken(result.access_token);
