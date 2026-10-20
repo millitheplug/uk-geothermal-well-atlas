@@ -353,9 +353,10 @@ export function CandidatesView() {
                 The score column is the weighted sum produced by the Python
                 scoring engine: thermal 25%, integrity 20%, demand 15%, economics
                 15%, network 10%, geometry 5%, regulatory 5% and data confidence
-                5%. Confidence is reported separately and is deliberately not
-                folded into the score, so a well with a strong score on thin
-                evidence stays visible as such.
+                5%. Evidence quality counts for 5% of the score, and it can also
+                pull a well down a priority level: the separate confidence rating
+                gates HIGH and MEDIUM priority, so a well with a strong score on
+                thin evidence stays visible as such.
               </p>
             </div>
           </div>
