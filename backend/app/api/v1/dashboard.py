@@ -229,7 +229,8 @@ def _demand_opportunity(db: DbSession, include_mock: bool) -> float | None:
                 total += float(demand)
                 break
 
-    return total / 1e9
+    # kWh -> GWh: the field name promises GWh, so divide by 1e6, not 1e9.
+    return total / 1e6
 
 
 def _breakdown(db: DbSession, include_mock: bool, column: Any) -> dict[str, int]:
@@ -287,17 +288,30 @@ def _score_histogram(db: DbSession, filtered, bins: int = 10) -> list[dict[str, 
     return buckets
 
 
-def _risk_totals(db: DbSession, caller: CurrentCaller) -> dict[str, int]:
-    """Count of risks per category across the caller's analyses."""
+def _risk_totals(db: DbSession, caller: CurrentCaller) -> dict[str, float]:
+    """Aggregate exposure per category across the caller's analyses.
+
+    Sums the uncertainty-adjusted score of every raised risk. Counting rows
+    cannot work here: the engine raises every category for every assessment,
+    so a count is identical for all seventeen categories and tells the reader
+    nothing. Exposure is what the interface claims to show, so exposure is
+    what this returns.
+    """
     from app.models.analysis import Risk
 
     rows = db.execute(
-        select(Risk.category, func.count())
+        select(
+            Risk.category,
+            func.coalesce(
+                func.sum(func.coalesce(Risk.uncertainty_adjusted_score, Risk.risk_score)),
+                0.0,
+            ),
+        )
         .join(Analysis, Analysis.id == Risk.analysis_id)
         .where(Analysis.tenant_id == caller.tenant_id)
         .group_by(Risk.category)
     ).all()
-    return {str(category): int(count) for category, count in rows}
+    return {str(category): round(float(total), 1) for category, total in rows}
 
 
 @router.get("/candidates", response_model=CandidateTable, summary="Ranked candidate table")

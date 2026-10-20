@@ -645,7 +645,7 @@ class NationalDashboard(BaseModel):
     purpose_breakdown: dict[str, int] = Field(default_factory=dict)
     region_breakdown: dict[str, int] = Field(default_factory=dict)
     score_histogram: list[dict[str, Any]] = Field(default_factory=list)
-    risk_category_totals: dict[str, int] = Field(default_factory=dict)
+    risk_category_totals: dict[str, float] = Field(default_factory=dict)
     is_mock: bool = Field(
         description="True when any contributing dataset is synthetic.",
     )

@@ -378,7 +378,7 @@ def demand_areas(
             for a in areas
         ],
         "count": len(areas),
-        "total_demand_gwh": sum(a.total_annual_demand_kwh for a in areas) / 1e9,
+        "total_demand_gwh": sum(a.total_annual_demand_kwh for a in areas) / 1e6,
     }
 
 

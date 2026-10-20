@@ -229,7 +229,7 @@ def density_grid(
         "totals": {
             "wells": sum(c.well_count for c in cells),
             "buildings": sum(c.building_count for c in cells),
-            "demand_gwh": sum(c.demand_kwh for c in cells) / 1e9,
+            "demand_gwh": sum(c.demand_kwh for c in cells) / 1e6,
         },
         "spatial_dialect": spatial_dialect(db),
     }
@@ -368,7 +368,7 @@ def demand_summary(db: DbSession, caller: CurrentCaller) -> dict[str, Any]:
         },
         "totals": {
             "buildings": int(totals[0] or 0),
-            "annual_demand_gwh": float(totals[1] or 0) / 1e9,
+            "annual_demand_gwh": float(totals[1] or 0) / 1e6,
             "peak_demand_kw": float(totals[2] or 0),
         },
         "caveat": (
