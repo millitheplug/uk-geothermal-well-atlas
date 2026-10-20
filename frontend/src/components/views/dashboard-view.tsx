@@ -167,7 +167,7 @@ export function DashboardView() {
             <StatTile
               label="Wells in inventory"
               value={data.total_wells.toLocaleString("en-GB")}
-              sub={`${data.candidate_wells.toLocaleString("en-GB")} currently eligible as candidates`}
+              sub={`${data.candidate_wells.toLocaleString("en-GB")} are candidates — a temperature measurement and a known well condition`}
             />
             <StatTile
               label="With a temperature record"

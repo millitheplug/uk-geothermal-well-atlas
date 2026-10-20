@@ -164,9 +164,17 @@ Each component is scored 0–100. The weights are asserted to sum to 1.0 at
 import, so the composite is directly comparable across wells and across
 versions; `SCORE_VERSION` travels with every stored analysis.
 
-Confidence is computed **separately** and deliberately not folded into the
-score. A high score on thin evidence is the case this platform most needs to get
-right, and merging the two numbers would hide it.
+The weights themselves are **provisional engineering judgement**. They were not
+derived from published research or a structured elicitation method, and they
+have not yet been sensitivity-tested. Changing a weight by 5–10 points and
+checking whether the ranking moves is the test still outstanding.
+
+Confidence is computed **separately** and reported as its own number. It reaches
+the outcome in two explicit places: evidence quality counts as the 0.05
+`data_confidence` term above, and the separate confidence score gates HIGH and
+MEDIUM priority. A high score on thin evidence is the case this platform most
+needs to get right, so the two numbers stay visible side by side rather than
+being merged into one.
 
 Four recommendation levels, assigned by the engine from the composite score with
 confidence and open critical risks applied as gates:

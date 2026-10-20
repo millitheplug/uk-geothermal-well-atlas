@@ -49,6 +49,13 @@ import { RISK_LABELS, humanise } from "@/lib/domain";
 import { wellKey } from "@/lib/utils";
 import type { CandidateRow, NationalDashboard, RiskCategory } from "@/types/api";
 
+/** Wells with a completed assessment: every recommendation band except "unknown". */
+function assessedWellCount(recommendationBreakdown: Record<string, number>): number {
+  return Object.entries(recommendationBreakdown)
+    .filter(([key]) => key !== "unknown")
+    .reduce((sum, [, count]) => sum + count, 0);
+}
+
 /** Categories whose presence is caused by absent data rather than by physics. */
 const DATA_GAP_CATEGORIES: RiskCategory[] = [
   "well_integrity",
@@ -126,9 +133,10 @@ export function RiskView() {
           <Notice tone="info" title="How exposure is ranked">
             Each risk carries a likelihood, an impact and an explicit
             uncertainty, all in the range 0 to 1. The uncertainty-adjusted score
-            divides the raw product by (1 + uncertainty), so a risk nobody has
-            measured ranks above an equivalent risk that has. A register ranked on
-            raw likelihood×impact systematically buries the unknowns.
+            multiplies the raw likelihood×impact by (1 + uncertainty × 0.5),
+            capped at 1, so a risk nobody has measured ranks above an equivalent
+            risk that has. A register ranked on raw likelihood×impact alone
+            systematically buries the unknowns.
           </Notice>
 
           {dashboard.loading && !dashboard.data && <Loading label="Loading risk aggregates" />}
@@ -140,11 +148,20 @@ export function RiskView() {
             <StatGrid cols={4}>
               <StatTile
                 label="Wells assessed"
-                value={Object.keys(dashboard.data.recommendation_breakdown).length > 0
-                  ? dashboard.data.candidate_wells.toLocaleString("en-GB")
-                  : "Not assessed"}
-                sub="A risk register needs an analysis behind each well"
-                tone={Object.keys(dashboard.data.recommendation_breakdown).length === 0 ? "warning" : "default"}
+                value={(() => {
+                  const assessed = assessedWellCount(
+                    dashboard.data.recommendation_breakdown,
+                  );
+                  return assessed > 0
+                    ? assessed.toLocaleString("en-GB")
+                    : "Not assessed";
+                })()}
+                sub="Wells with a completed assessment behind their risk register"
+                tone={
+                  assessedWellCount(dashboard.data.recommendation_breakdown) === 0
+                    ? "warning"
+                    : "default"
+                }
               />
               <StatTile
                 label="Wells needing more data"

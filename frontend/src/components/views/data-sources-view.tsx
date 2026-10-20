@@ -460,7 +460,9 @@ function DatasetRow({ dataset }: { dataset: Dataset }) {
         {dataset.row_count !== null ? dataset.row_count.toLocaleString("en-GB") : "—"}
       </TableCell>
       <TableCell className="text-right">
-        {dataset.quality_score.toFixed(2)}
+        {dataset.quality_score > 0
+          ? dataset.quality_score.toFixed(2)
+          : "Not calculated"}
       </TableCell>
       <TableCell>
         <Badge variant="outline" className="text-[11px]">

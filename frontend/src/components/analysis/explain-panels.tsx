@@ -80,7 +80,9 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
           Each component is scored 0–100 by the Python engineering engine and
           combined with the weights below. The weights sum to{" "}
           {weightSum.toFixed(2)}, so the composite score is directly comparable
-          across wells and versions are recorded on the analysis.
+          across wells and versions are recorded on the analysis. The weights are
+          provisional engineering judgement, not published research, and they
+          have not been sensitivity-tested yet.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -230,10 +232,11 @@ export function ConfidencePanel({
       <CardContent className="space-y-3">
         <p className="text-xs leading-relaxed text-muted-foreground">
           Confidence describes the <em>evidence</em>, not the resource. It is
-          reported separately from the feasibility score and is deliberately not
-          folded into it: a well with an excellent score and no measurements is
-          the case this platform most needs to get right, and merging the two
-          numbers would hide it.
+          reported as its own number and reaches the outcome in two places:
+          evidence quality counts for 5% of the score, and this rating gates
+          HIGH and MEDIUM priority. A well with an excellent score and no
+          measurements is the case this platform most needs to get right, so both
+          numbers stay visible side by side instead of being merged into one.
         </p>
 
         {axes.length > 0 && (
