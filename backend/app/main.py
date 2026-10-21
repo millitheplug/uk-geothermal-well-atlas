@@ -64,12 +64,22 @@ async def lifespan(app: FastAPI):
     except SQLAlchemyError as exc:
         logger.error("database unreachable at startup: %s", exc)
 
-    if settings.llm_available:
-        logger.info("llm: anthropic (%s)", settings.anthropic_model)
-    elif settings.ai_enabled:
-        logger.info("llm: mock provider (no ANTHROPIC_API_KEY configured)")
-    else:
+    if not settings.ai_enabled:
         logger.info("llm: disabled")
+    elif settings.ai_provider == "mock":
+        logger.info("llm: mock provider (AI_PROVIDER=mock)")
+    elif settings.mimo_api_key and settings.ai_provider in ("auto", "mimo"):
+        logger.info("llm: mimo (%s)", settings.mimo_model)
+    elif settings.anthropic_api_key and settings.ai_provider in ("auto", "anthropic"):
+        logger.info("llm: anthropic (%s)", settings.anthropic_model)
+    elif settings.ai_provider != "auto":
+        logger.warning(
+            "llm: AI_PROVIDER=%s but no matching API key; falling back to the "
+            "deterministic mock",
+            settings.ai_provider,
+        )
+    else:
+        logger.info("llm: mock provider (no MIMO_API_KEY or ANTHROPIC_API_KEY configured)")
 
     yield
 

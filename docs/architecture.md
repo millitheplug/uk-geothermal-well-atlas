@@ -261,13 +261,18 @@ the very values it is meant to be checked against.
 
 ### Providers
 
-`agents/llm.py` has two:
+`agents/llm.py` has three:
 
+- `MimoProvider` — Xiaomi MiMo over its OpenAI-compatible chat completions
+  API. Used when `MIMO_API_KEY` is set (and `AI_PROVIDER` is `auto` or
+  `mimo`). Temperature is 0.0 with thinking disabled so the server cannot
+  override it; the schema is offered as a `submit` tool and as inline JSON
+  instructions, then validated like every other provider.
 - `AnthropicProvider` — used when `ANTHROPIC_API_KEY` is set. Temperature is
   0.0 because an agent that varies between runs cannot be used to review a
   decision.
 - `MockProvider` — deterministic, schema-valid, no network. Used when no key is
-  present.
+  present, or when `AI_PROVIDER=mock`.
 
 Because no agent performs arithmetic, results are identical either way. Only the
 prose differs. This is what makes the test suite runnable without a key, and it

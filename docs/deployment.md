@@ -75,8 +75,12 @@ Docker is absent.
 | `RATE_LIMIT_ENABLED` | `true` | |
 | `RATE_LIMIT_PER_MINUTE` | `120` | Per caller identity |
 | `CORS_ORIGINS` | `http://localhost:3000,…` | Comma-separated. Set to the real frontend origin |
-| `ANTHROPIC_API_KEY` | unset | Absent → deterministic mock provider. **Numbers are identical either way** |
+| `AI_PROVIDER` | `auto` | `auto` = MiMo, then Anthropic, then mock. Pin `mimo`, `anthropic` or `mock`; an unknown value refuses to start |
+| `ANTHROPIC_API_KEY` | unset | Absent → the next provider is tried. **Numbers are identical with any provider** |
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-5` | |
+| `MIMO_API_KEY` | unset | Xiaomi MiMo key (platform.xiaomimimo.com). Absent → the next provider is tried |
+| `MIMO_BASE_URL` | `https://api.xiaomimimo.com/v1` | OpenAI-compatible chat completions endpoint |
+| `MIMO_MODEL` | `mimo-v2.6-flash` | Use V2.6 model IDs; the V2.5 IDs were retired on 2026-10-21 |
 | `AI_ENABLED` | `true` | |
 | `AI_MAX_TOKENS` | `4096` | |
 | `AI_TEMPERATURE` | `0.0` | Do not raise. An agent that varies between runs cannot be used to review a decision |

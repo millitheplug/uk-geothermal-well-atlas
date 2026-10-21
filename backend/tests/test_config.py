@@ -21,6 +21,27 @@ def test_cors_origins_accepts_comma_separated_and_json(monkeypatch, raw, expecte
     assert Settings().cors_origins == expected
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("auto", "auto"),
+        ("mimo", "mimo"),
+        ("anthropic", "anthropic"),
+        ("mock", "mock"),
+    ],
+)
+def test_ai_provider_accepts_only_documented_names(monkeypatch, raw, expected):
+    monkeypatch.setenv("AI_PROVIDER", raw)
+    assert Settings().ai_provider == expected
+
+
+def test_ai_provider_rejects_unknown_names(monkeypatch):
+    """A typo must fail at startup, not silently route to the wrong provider."""
+    monkeypatch.setenv("AI_PROVIDER", "claude")
+    with pytest.raises(ValueError, match="ai_provider"):
+        Settings()
+
+
 def test_production_requires_a_real_secret_and_debug_off(monkeypatch):
     monkeypatch.setenv("ENVIRONMENT", "production")
     with pytest.raises(ValueError, match="SECRET_KEY"):

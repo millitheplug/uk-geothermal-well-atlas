@@ -63,8 +63,16 @@ class Settings(BaseSettings):
     # ---- AI -------------------------------------------------------------
     # When no API key is present the agent layer falls back to a deterministic
     # mock provider that returns schema-valid structured output.
+    # AI_PROVIDER pins a provider: "auto" tries MiMo then Anthropic and falls
+    # back to the mock; an explicit name selects that provider only.
+    ai_provider: Literal["auto", "mimo", "anthropic", "mock"] = "auto"
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-4-5"
+    # Xiaomi MiMo, OpenAI-compatible chat completions API.
+    mimo_api_key: str | None = None
+    mimo_base_url: str = "https://api.xiaomimimo.com/v1"
+    # V2.6 model IDs: the V2.5 IDs were retired on 2026-10-21.
+    mimo_model: str = "mimo-v2.6-flash"
     ai_enabled: bool = True
     ai_max_tokens: int = 4096
     ai_temperature: float = 0.0
@@ -146,7 +154,7 @@ class Settings(BaseSettings):
 
     @property
     def llm_available(self) -> bool:
-        return bool(self.ai_enabled and self.anthropic_api_key)
+        return bool(self.ai_enabled and (self.mimo_api_key or self.anthropic_api_key))
 
 
 @lru_cache
