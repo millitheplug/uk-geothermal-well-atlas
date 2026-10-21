@@ -581,7 +581,7 @@ export function WellDetailView() {
                       <div className="text-[12px] text-muted-foreground">
                         m to nearest
                         <span className="ml-1">
-                          <EpistemicBadge status="MEASURED" />
+                          <EpistemicBadge status="DERIVED" />
                         </span>
                       </div>
                     </div>

@@ -70,7 +70,7 @@ const COLUMNS: Array<{
   { key: "total_depth_m", label: "Depth", order_by: "total_depth_m", align: "right", note: "Measured" },
   { key: "temperature_c", label: "Temp", order_by: "temperature_c", align: "right", note: "Label per row" },
   { key: "thermal_output_kw", label: "Output", order_by: "thermal_output_kw", align: "right", note: "Label per row" },
-  { key: "nearest_building_distance_m", label: "To demand", order_by: "nearest_building_distance_m", align: "right", note: "Derived" },
+  { key: "nearest_building_distance_m", label: "To demand", order_by: "nearest_building_distance_m", align: "right", note: "Derived. No match within 2 km means demand is unknown here, not zero." },
   { key: "annual_demand_kwh", label: "Demand", order_by: "annual_demand_kwh", align: "right", note: "Estimate" },
   { key: "capex_gbp", label: "CAPEX", order_by: "capex_gbp", align: "right", note: "Estimate" },
   { key: "lcoh_p_per_kwh", label: "LCOH", order_by: "lcoh_p_per_kwh", align: "right", note: "Derived" },
@@ -427,9 +427,18 @@ function CandidateRowView({ row }: { row: CandidateRow }) {
         </span>
       </TableCell>
       <TableCell className="whitespace-nowrap text-right">
-        {row.nearest_building_distance_m !== null
-          ? `${Math.round(row.nearest_building_distance_m).toLocaleString("en-GB")} m`
-          : <Missing />}
+        {row.nearest_building_distance_m !== null ? (
+          `${Math.round(row.nearest_building_distance_m).toLocaleString("en-GB")} m`
+        ) : row.feasibility_score !== null ? (
+          <span
+            className="text-xs italic text-muted-foreground"
+            title="The assessment searched for buildings within 2 km and found none. Demand near this well is unknown, not zero."
+          >
+            No match within 2 km
+          </span>
+        ) : (
+          <Missing />
+        )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-right">
         {row.annual_demand_kwh !== null
@@ -531,6 +540,10 @@ function CandidateCard({ row }: { row: CandidateRow }) {
       value:
         row.nearest_building_distance_m !== null ? (
           `${Math.round(row.nearest_building_distance_m).toLocaleString("en-GB")} m`
+        ) : row.feasibility_score !== null ? (
+          <span className="text-xs italic text-muted-foreground">
+            No match within 2 km
+          </span>
         ) : (
           <Missing />
         ),

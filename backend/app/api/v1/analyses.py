@@ -10,10 +10,11 @@ from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 
 from app.api.deps import DbSession, Pagination
-from app.core.enums import GeothermalConfiguration, Recommendation
+from app.core.enums import EpistemicStatus, GeothermalConfiguration, Recommendation
 from app.core.security import Caller, CurrentCaller, scoped_well_query
 from app.engineering.pipeline import WellAssessment, assess_well
 from app.models.analysis import Analysis, Risk, ValidationAction
+from app.models.evidence import CalculationTrace
 from app.models.well import Well
 from app.schemas.well import (
     AnalysisCreate,
@@ -508,6 +509,33 @@ def _analysis_to_result(db: DbSession, analysis: Analysis, well: Well | None = N
     )
     gaps = (analysis.data_gaps or {}).get("gaps", [])
 
+    # The trace lives in its own table, one row per function call. Status,
+    # confidence and warnings were stored in the row's JSON sidecar; older rows
+    # predate the units/assumptions keys, so those default rather than fail.
+    trace_rows = db.scalars(
+        select(CalculationTrace)
+        .where(CalculationTrace.analysis_id == analysis.id)
+        .order_by(CalculationTrace.created_at, CalculationTrace.function_name)
+    ).all()
+
+    def _trace_entry(t: CalculationTrace) -> dict[str, Any]:
+        sidecar: dict[str, Any] = t.warnings or {}
+        return {
+            "function_name": t.function_name,
+            "inputs": t.inputs or {},
+            "input_units": sidecar.get("input_units") or {},
+            "formula": t.formula,
+            "result": t.result,
+            "result_unit": t.result_unit or "",
+            "status": sidecar.get("status") or EpistemicStatus.DERIVED.value,
+            "assumptions": sidecar.get("assumptions") or [],
+            "sources": sidecar.get("sources") or [],
+            "intermediate_values": t.intermediate_values or {},
+            "warnings": list(sidecar.get("warnings") or []),
+            "confidence": sidecar.get("confidence"),
+            "engine_version": t.engine_version,
+        }
+
     result = AnalysisResult(
         analysis_id=analysis.id,
         well_id=well.well_id,
@@ -546,7 +574,7 @@ def _analysis_to_result(db: DbSession, analysis: Analysis, well: Well | None = N
         data_gaps=gaps,
         unknowns=(analysis.data_gaps or {}).get("unknowns", []),
         warnings=[],
-        calculation_trace=[],
+        calculation_trace=[_trace_entry(t) for t in trace_rows],
         parameters={},
         agent_outputs=analysis.agent_outputs,
         report_markdown=analysis.report_markdown,

@@ -456,6 +456,11 @@ def _persist_assessment(
                     "warnings": list(trace.get("warnings", [])),
                     "status": trace.get("status"),
                     "confidence": trace.get("confidence"),
+                    # Carried here so the GET serializer can rebuild the trace
+                    # field-for-field instead of returning an empty list.
+                    "input_units": trace.get("input_units") or {},
+                    "assumptions": trace.get("assumptions") or [],
+                    "sources": trace.get("sources") or [],
                 },
                 engine_version=trace.get("engine_version", PIPELINE_VERSION),
             )
