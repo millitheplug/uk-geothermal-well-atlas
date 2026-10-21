@@ -7,12 +7,21 @@ the happy path would pass even if every guard were removed.
 
 from __future__ import annotations
 
+import json
+
+import httpx
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from app.agents.agents import FeasibilityAgent
 from app.agents.base import enforce_discipline
-from app.agents.llm import LLMError, MockProvider, get_llm_provider
+from app.agents.llm import (
+    AnthropicProvider,
+    LLMError,
+    MimoProvider,
+    MockProvider,
+    get_llm_provider,
+)
 from app.agents.orchestrator import (
     AgentOrchestrator,
     _environmental_summary,
@@ -104,6 +113,8 @@ class TestProviderSelection:
     def test_mock_used_when_no_api_key(self, monkeypatch):
         from app.core.config import settings
 
+        monkeypatch.setattr(settings, "ai_provider", "auto", raising=False)
+        monkeypatch.setattr(settings, "mimo_api_key", None, raising=False)
         monkeypatch.setattr(settings, "anthropic_api_key", None, raising=False)
         assert isinstance(get_llm_provider(), MockProvider)
 
@@ -112,6 +123,206 @@ class TestProviderSelection:
 
     def test_provider_name_is_stable(self):
         assert MockProvider().name == "mock"
+        assert MimoProvider.__name__ == "MimoProvider"
+
+    def test_mimo_used_when_key_set(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ai_provider", "auto", raising=False)
+        monkeypatch.setattr(settings, "mimo_api_key", "k", raising=False)
+        monkeypatch.setattr(settings, "anthropic_api_key", None, raising=False)
+        assert isinstance(get_llm_provider(), MimoProvider)
+
+    def test_anthropic_used_when_only_anthropic_key(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ai_provider", "auto", raising=False)
+        monkeypatch.setattr(settings, "mimo_api_key", None, raising=False)
+        monkeypatch.setattr(settings, "anthropic_api_key", "k", raising=False)
+        assert isinstance(get_llm_provider(), AnthropicProvider)
+
+    def test_explicit_provider_never_silently_substituted(self, monkeypatch):
+        """AI_PROVIDER=anthropic with only a MiMo key must not call MiMo."""
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ai_provider", "anthropic", raising=False)
+        monkeypatch.setattr(settings, "mimo_api_key", "k", raising=False)
+        monkeypatch.setattr(settings, "anthropic_api_key", None, raising=False)
+        assert isinstance(get_llm_provider(), MockProvider)
+
+    def test_ai_provider_mock_forces_deterministic_even_with_keys(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "ai_provider", "mock", raising=False)
+        monkeypatch.setattr(settings, "mimo_api_key", "k", raising=False)
+        monkeypatch.setattr(settings, "anthropic_api_key", "k", raising=False)
+        assert isinstance(get_llm_provider(), MockProvider)
+
+
+class TestMimoProvider:
+    """MiMo speaks the OpenAI wire format but shares the validation contract."""
+
+    class _Payload(BaseModel):
+        answer: str
+
+    def _configure(self, monkeypatch) -> None:
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "mimo_api_key", "test-key", raising=False)
+        monkeypatch.setattr(settings, "mimo_base_url", "https://mimo.test/v1", raising=False)
+        monkeypatch.setattr(settings, "mimo_model", "mimo-v2.6-flash", raising=False)
+        monkeypatch.setattr(settings, "ai_max_tokens", 4096, raising=False)
+        monkeypatch.setattr(settings, "ai_temperature", 0.0, raising=False)
+
+    def _provider(self, handler):
+        client = httpx.Client(transport=httpx.MockTransport(handler))
+        return MimoProvider(client=client)
+
+    def test_requires_a_key(self, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "mimo_api_key", None, raising=False)
+        with pytest.raises(LLMError, match="MIMO_API_KEY"):
+            MimoProvider()
+
+    def test_parses_submit_tool_call(self, monkeypatch):
+        self._configure(monkeypatch)
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen["url"] = str(request.url)
+            seen["api_key"] = request.headers.get("api-key")
+            body = json.loads(request.content)
+            seen["thinking"] = body.get("thinking")
+            seen["temperature"] = body.get("temperature")
+            return httpx.Response(
+                200,
+                json={
+                    "model": "mimo-v2.6-flash",
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "type": "function",
+                                        "function": {
+                                            "name": "submit",
+                                            "arguments": json.dumps({"answer": "42"}),
+                                        },
+                                    }
+                                ],
+                            },
+                        }
+                    ],
+                    "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+                },
+            )
+
+        response = self._provider(handler).complete(
+            system="sys", user="usr", schema=self._Payload
+        )
+        assert seen["url"] == "https://mimo.test/v1/chat/completions"
+        assert seen["api_key"] == "test-key"
+        # Thinking must be disabled or the server overrides temperature to 1.0.
+        assert seen["thinking"] == {"type": "disabled"}
+        assert seen["temperature"] == 0.0
+        assert json.loads(response.text) == {"answer": "42"}
+        assert response.provider == "mimo"
+        assert response.input_tokens == 10
+        assert response.output_tokens == 5
+
+    def test_falls_back_to_fenced_json_content(self, monkeypatch):
+        self._configure(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {
+                                "role": "assistant",
+                                "content": '```json\n{"answer": "7"}\n```',
+                            },
+                        }
+                    ],
+                },
+            )
+
+        response = self._provider(handler).complete(
+            system="sys", user="usr", schema=self._Payload
+        )
+        assert json.loads(response.text) == {"answer": "7"}
+
+    def test_http_error_raises(self, monkeypatch):
+        self._configure(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(429, json={"error": "rate limited"})
+
+        with pytest.raises(LLMError, match="HTTP 429"):
+            self._provider(handler).complete(
+                system="sys", user="usr", schema=self._Payload
+            )
+
+    def test_token_limit_raises(self, monkeypatch):
+        self._configure(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200, json={"choices": [{"finish_reason": "length", "message": {}}]}
+            )
+
+        with pytest.raises(LLMError, match="token limit"):
+            self._provider(handler).complete(
+                system="sys", user="usr", schema=self._Payload
+            )
+
+    def test_no_choices_raises(self, monkeypatch):
+        self._configure(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json={"choices": []})
+
+        with pytest.raises(LLMError, match="no choices"):
+            self._provider(handler).complete(
+                system="sys", user="usr", schema=self._Payload
+            )
+
+    def test_complete_model_validates_json_like_every_provider(self, monkeypatch):
+        """The retry-and-fail contract is inherited, not re-implemented."""
+        self._configure(monkeypatch)
+        calls = {"n": 0}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            calls["n"] += 1
+            # A list where the schema demands a string: validation must fail on
+            # the first attempt and the retry must succeed.
+            content = (
+                json.dumps({"answer": "42"})
+                if calls["n"] > 1
+                else json.dumps({"answer": ["not", "a", "string"]})
+            )
+            return httpx.Response(
+                200,
+                json={
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {"role": "assistant", "content": content},
+                        }
+                    ]
+                },
+            )
+
+        result, _ = self._provider(handler).complete_model(
+            system="sys", user="usr", schema=self._Payload
+        )
+        assert result.answer == "42"
+        assert calls["n"] == 2
 
 
 class TestSchemaValidation:
