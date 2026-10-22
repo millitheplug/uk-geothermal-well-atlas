@@ -67,8 +67,9 @@ Three different figures are easily confused here and must not be mixed:
 8. **Evidence quality** — 5 confidence bands from 5 weighted axes; 7 epistemic
    statuses label every figure. Two separate mechanisms by design.
 9. **Risk register** — 17 categories, one rule per category; likelihood and
-   impact derived from the well's own data; uncertainty is a documented
-   constant per rule (0.35–0.60). The register stores computed output, not user
+   impact derived from the well's own data; uncertainty is set per rule in
+   `risk.py` (roughly 0.15–0.85, and lower for a few rules once the input is
+   known). The register stores computed output, not user
    input.
 10. **NSTA provenance** — ArcGIS item `d40f9dc58ca84268935582152a5b20f9`,
     snapshot + SHA-256 committed under `data/real/nsta/`, 2,138 records,
@@ -76,7 +77,7 @@ Three different figures are easily confused here and must not be mixed:
     checksum.
 11. **Data-quality score** — a hardcoded 0.0 placeholder in both adapters, not a
     measurement. The UI now says "Not calculated" (PR #16).
-12. **Licence** — NSTA Open User Licence, non-commercial use with attribution
+12. **Licence** — NSTA User Agreement, non-commercial use with attribution
     ("Contains data from the North Sea Transition Authority."). Read the terms
     before any public release.
 13. **Parameters** — 17 documented defaults (`parameters.py`), each with
@@ -105,7 +106,7 @@ live.
 |---|---|---|---|
 | Any single weight ±5 points | ≥ 0.95 (most ≥ 0.99) | ≤ 15, all one step | ≤ 4.0 pts |
 | Any single weight ±10 points | ≥ 0.89 | ≤ 15, all one step | ≤ 8.0 pts |
-| Equal weights (0.125 each) — a deliberately drastic control | 0.895 | 9 | 11.6 pts |
+| Equal weights (0.125 each) — a deliberately drastic control | 0.905 | 9 | 11.6 pts |
 
 Conclusions the thesis may draw:
 
