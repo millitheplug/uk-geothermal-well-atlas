@@ -570,7 +570,28 @@ export function AgentPanel({
   reportMarkdown: string | null;
   wellName?: string | null;
 }) {
-  const entries = outputs ? Object.entries(outputs) : [];
+  // The stored run is {provider, model, agents: {<AgentName>: {accepted,
+  // violations, output, ...}}, accepted_agents, rejected_agents, ...}. Show the
+  // run summary once and each agent as its own card, instead of dumping the
+  // nested structure as JSON. A payload without an `agents` map (an older
+  // shape) falls back to listing its top-level keys.
+  const run = (outputs ?? {}) as Record<string, unknown>;
+  const agentEntries = Object.entries(
+    (run.agents && typeof run.agents === "object" ? run.agents : {}) as Record<
+      string,
+      Record<string, unknown>
+    >,
+  );
+  const fallbackEntries = agentEntries.length === 0 ? Object.entries(run) : [];
+  const acceptedCount = Array.isArray(run.accepted_agents)
+    ? run.accepted_agents.length
+    : null;
+  const rejectedCount = Array.isArray(run.rejected_agents)
+    ? run.rejected_agents.length
+    : 0;
+  const durationMs =
+    typeof run.total_duration_ms === "number" ? run.total_duration_ms : null;
+  const entryCount = agentEntries.length || fallbackEntries.length;
 
   return (
     <Card>
@@ -600,13 +621,48 @@ export function AgentPanel({
           />
         )}
 
-        {entries.length > 0 && (
+        {entryCount > 0 && (
           <div className="space-y-2">
-            <SectionTitle>Agent outputs ({entries.length})</SectionTitle>
+            <SectionTitle>Agent outputs ({entryCount})</SectionTitle>
+            {agentEntries.length > 0 && (
+              <p className="text-[12px] leading-relaxed text-muted-foreground">
+                {run.is_mock
+                  ? "Deterministic stand-in, not a language model"
+                  : `Provider ${String(run.provider ?? "unknown")}`}
+                {run.model ? ` (${String(run.model)})` : ""}
+                {acceptedCount !== null ? ` · ${acceptedCount} accepted` : ""}
+                {rejectedCount > 0
+                  ? ` · ${rejectedCount} rejected by the discipline gate`
+                  : ""}
+                {durationMs !== null ? ` · ${Math.round(durationMs)} ms` : ""}
+              </p>
+            )}
             <ul className="space-y-1.5">
-              {entries.map(([name, value]) => (
+              {agentEntries.map(([name, agent]) => (
                 <li key={name} className="rounded-md border p-2.5">
-                  <p className="font-mono text-[12px] text-muted-foreground">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium">
+                      {name.replace(/([a-z])([A-Z])/g, "$1 $2")}
+                    </p>
+                    <Badge variant="muted" className="text-[11px]">
+                      {agent.accepted === false ? "Rejected" : "Accepted"}
+                    </Badge>
+                  </div>
+                  {Array.isArray(agent.violations) &&
+                    agent.violations.length > 0 && (
+                      <div className="mt-1">
+                        <p className="text-[12px] text-muted-foreground">
+                          Discipline gate notes
+                        </p>
+                        <AgentValue value={agent.violations} />
+                      </div>
+                    )}
+                  <AgentValue value={agent.output} />
+                </li>
+              ))}
+              {fallbackEntries.map(([name, value]) => (
+                <li key={name} className="rounded-md border p-2.5">
+                  <p className="text-[12px] text-muted-foreground">
                     {humanise(name)}
                   </p>
                   <AgentValue value={value} />
@@ -686,31 +742,38 @@ function AgentValue({ value }: { value: unknown }) {
     return <p className="mt-0.5 text-xs tabular">{String(value)}</p>;
   }
   if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return (
+        <p className="mt-0.5 text-xs italic text-muted-foreground">
+          None recorded
+        </p>
+      );
+    }
     return (
-      <ul className="mt-0.5 space-y-0.5 text-xs leading-relaxed">
+      <ul className="mt-0.5 space-y-1 text-xs leading-relaxed">
         {value.map((item, index) => (
           <li key={index} className="flex gap-1.5">
             <span aria-hidden>·</span>
-            <span>{typeof item === "string" ? item : JSON.stringify(item)}</span>
+            <div className="min-w-0 flex-1">
+              <AgentValue value={item} />
+            </div>
           </li>
         ))}
       </ul>
     );
   }
   if (typeof value === "object") {
+    // Nested objects and arrays recurse, so no part of a payload is ever shown
+    // as raw JSON.
     return (
-      <dl className="mt-0.5 space-y-0.5 text-xs">
+      <dl className="mt-0.5 space-y-1 text-xs">
         {Object.entries(value as Record<string, unknown>).map(([key, item]) => (
           <div key={key} className="flex gap-2">
-            <dt className="shrink-0 font-mono text-[12px] text-muted-foreground">
-              {key}
+            <dt className="w-32 shrink-0 text-[12px] text-muted-foreground">
+              {humanise(key)}
             </dt>
-            <dd className="min-w-0 break-words">
-              {item === null || item === undefined
-                ? "Not available"
-                : typeof item === "object"
-                  ? JSON.stringify(item)
-                  : String(item)}
+            <dd className="min-w-0 flex-1 break-words">
+              <AgentValue value={item} />
             </dd>
           </div>
         ))}
