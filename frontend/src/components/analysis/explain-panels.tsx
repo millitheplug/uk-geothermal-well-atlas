@@ -81,8 +81,9 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
           combined with the weights below. The weights sum to{" "}
           {weightSum.toFixed(2)}, so the composite score is directly comparable
           across wells and versions are recorded on the analysis. The weights are
-          provisional engineering judgement, not published research, and they
-          have not been sensitivity-tested yet.
+          provisional engineering judgement, not published research. Shifting
+          any one weight by 5 or 10 points was tested offline; the result is in
+          docs/walkthrough.md.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -90,8 +91,12 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
           const score = components[name];
           const weight = WEIGHTS[name];
           const isConfidence = name === "data_confidence";
+          // The engine returns each component on a 0-1 scale. Show it on the
+          // 0-100 scale the composite uses, so the contributions add up to the
+          // composite score shown below.
+          const scorePct = typeof score === "number" ? score * 100 : null;
           const contribution =
-            typeof score === "number" ? score * weight : null;
+            typeof score === "number" ? score * weight * 100 : null;
 
           return (
             <div key={name}>
@@ -108,9 +113,9 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
                   )}
                 </span>
                 <span className="tabular shrink-0">
-                  {typeof score === "number" ? (
+                  {scorePct !== null ? (
                     <>
-                      {score.toFixed(0)}
+                      {scorePct.toFixed(0)}
                       <span className="text-muted-foreground">
                         {" → "}
                         {contribution?.toFixed(1)} pts
@@ -124,7 +129,7 @@ export function ScoreBreakdown({ result }: { result: AnalysisResult }) {
                 </span>
               </div>
               <Progress
-                value={typeof score === "number" ? score : 0}
+                value={scorePct ?? 0}
                 className="mt-1 h-1.5"
                 tone={isConfidence ? "none" : "default"}
               />
