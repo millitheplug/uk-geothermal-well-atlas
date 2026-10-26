@@ -10,32 +10,54 @@ deployment), the source database is named.
 
 ---
 
-## 1. The five headline numbers (local development database)
+## 1. The headline numbers (reference database)
 
-Recorded from the running app's own dashboard (`include_mock = true`, which is
-the screen's default) and cross-checked against the API:
+One database is the source of every figure in the thesis. It was built fresh
+from `main` on **2026-10-26** and every well was assessed by the engine
+(score version 0.1.0):
 
-| Figure | Value |
-|---|---|
-| Wells in inventory | **2,158** (2,138 real NSTA records + 20 synthetic) |
-| With a temperature record | **37** |
-| Wells scored (assessed) | **2** |
-| Reaching Medium or High priority | **0** |
-| Best score | **40.49** (Low priority band; best *real* well 39.96, L46/16-31 SPRINGS ROAD) |
+```
+export DATABASE_URL=sqlite:///ref.db ENVIRONMENT=development PYTHONPATH=backend
+python -m scripts.cli init --migrate
+python -m scripts.cli seed-user --email demo@example.com --password <password>
+python -m scripts.cli bootstrap            # 20 synthetic wells + synthetic buildings
+python -m scripts.cli ingest nsta_wells    # 2,138 real NSTA wells
+python -m scripts.cli assess --email demo@example.com --limit 5000
+```
 
-With the synthetic toggle off the same screen reads 2,138 / 19 / 1 / 0, best
-39.96. The top-scoring well overall (40.49, UK-MOCK-NTH-012) is synthetic and
-is labelled as such.
+The figures below are what the running app's own `/dashboard/national` and
+`/dashboard/candidates` endpoints return for that database, with the synthetic
+toggle on (the screen's default) and off:
 
-Three different figures are easily confused here and must not be mixed:
+| Figure | With synthetic wells | Real wells only |
+|---|---|---|
+| Wells in inventory | 2,158 | 2,138 |
+| Wells scored (assessed) | 2,158 | 2,138 |
+| With a temperature record | 37 | 19 |
+| Candidates (temperature + known integrity status) | 23 | 14 |
+| High / Medium / Low / Do not pursue | 2 / 5 / 23 / 2,128 | 0 / 0 / 14 / 2,124 |
+| Best score | 71.75 (Wealden Capture Test 4, synthetic) | 43.18 (REMPSTONE 4Z, Low) |
+| Evidence confidence: medium / low / very low | 2 / 28 / 2,128 | 0 / 14 / 2,124 |
+| Estimated thermal capacity (sum of estimates) | 123.3 MWt | 59.4 MWt |
+| Average temperature (wells that have one) | 66.9 °C | 64.0 °C |
 
-- **2,158 / 2,138** — national inventory (dashboard KPIs are national).
-- **23** — *candidates*: wells with a temperature record **and** a known
-  integrity status (`dashboard.py`, `candidate_wells`).
-- **2** — wells with a stored assessment and therefore a priority band.
-- The *candidate table* is additionally **tenant-scoped**: a fresh account has
-  adopted no wells, so its candidate table can legitimately show nothing while
-  the national KPIs are non-zero.
+Heat demand near wells reads 61.6 GWh in both views; all of it comes from
+synthetic buildings.
+
+Do not mix up three different counts:
+
+- **Scored** — wells with a stored assessment (all 2,158 here).
+- **Candidates** — wells with a temperature record **and** a known integrity
+  status (`dashboard.py`, `candidate_wells`): 23, or 14 for real wells.
+- **Inventory** — every well in the database, whether or not it is scored.
+
+Figures such as "2 wells scored", a best score of 40.49, or counts between 14
+and 40 came from databases in which only some wells had been assessed. Do not
+quote them.
+
+The *candidate table* is additionally **tenant-scoped**: a fresh account has
+adopted no wells, so its candidate table can legitimately show nothing while
+the national KPIs are non-zero.
 
 ## 2. The sixteen questions, answered
 
@@ -93,36 +115,57 @@ Three different figures are easily confused here and must not be mixed:
     path by which a language model can influence a number"). Anthropic only
     when a key is configured; otherwise a deterministic mock.
 
-## 3. Weight sensitivity test (the outstanding methodological check)
+## 3. Weight sensitivity test
 
-Run: `python scripts/weight_sensitivity.py` — re-runs the unmodified engine for
-every well with a temperature record (37: 19 real, 18 synthetic) on a **copy**
-of the database, then recomputes composites under perturbed weights and re-bands
-with the engine's own `recommend()`. The recomputed baseline matches the engine
-to 1e-6 for every well, which also demonstrates the 0.05 confidence term is
-live.
+Run: `python scripts/weight_sensitivity.py --db ref.db` (all wells with a
+temperature record: 37, of which 19 real and 18 synthetic) and
+`python scripts/weight_sensitivity.py --db ref.db --real-only` (the 19 real
+wells). It re-runs the unmodified engine on a **copy** of the database, then
+recomputes composites under perturbed weights and re-bands with the engine's own
+`recommend()`. The recomputed baseline matches the engine to 1e-6 for every
+well, which also demonstrates the 0.05 confidence term is live.
 
-| Perturbation | Rank ρ vs baseline | Wells changing band | Max score move |
-|---|---|---|---|
-| Any single weight ±5 points | ≥ 0.95 (most ≥ 0.99) | ≤ 15, all one step | ≤ 4.0 pts |
-| Any single weight ±10 points | ≥ 0.89 | ≤ 15, all one step | ≤ 8.0 pts |
-| Equal weights (0.125 each) — a deliberately drastic control | 0.905 | 9 | 11.6 pts |
+The rank correlation is **Spearman's ρ**: the Pearson correlation of ranks, with
+tied scores given the average of the ranks they span. (An earlier version used
+plain ordinal ranks, which treat ties arbitrarily; the combined results moved
+by less than 0.01 when this was corrected.)
 
-Conclusions the thesis may draw:
+| Perturbation | All 37 wells: ρ | Wells changing band | 19 real wells: ρ | Wells changing band |
+|---|---|---|---|---|
+| Any single weight ±5 points | ≥ 0.951 | ≤ 15 | ≥ 0.940 | ≤ 10 |
+| Any single weight ±10 points | ≥ 0.894 | ≤ 15 | ≥ 0.737 | ≤ 13 |
+| Equal weights (0.125 each), a deliberately drastic control | 0.905 | 9 | 0.712 | 6 |
+| Confidence weight set to 0 | 0.981 | 8 | 1.000 | 6 |
 
-- The ranking is **not an artefact of the particular weights**: even doubling
-  every non-thermal weight's share or flattening all eight to equality leaves
-  rank correlation ≥0.89, and the top of the table barely moves.
-- Band changes concentrate at the **Low / Do-not-pursue boundary (score ≈ 25)**,
-  where several wells sit within two points of the line. Every change is one
-  step; no well jumps a band by two.
-- The two High-priority wells (both synthetic, labelled) stay High in all but
-  the −10-point thermal scenario.
-- Two real wells (LN/10-4Z REMPSTONE 4Z, L47/16-16 SALTFLEETBY 7X) sit just
-  below the Medium line and cross it under some +5/+10 shifts — say "within one
-  band of Medium under weight stress", not "Medium".
-- The regulatory weight moves scores but not ranks (ρ = 1.0 in every shift):
-  it is close to a constant across the inventory at present.
+Largest single-well score move: 4.0 points for ±5 and 8.0 for ±10 in both
+groups (11.6 points for equal weights, or 11.3 for the real wells). Every band change, in both groups, moves a well
+by exactly one band.
+
+What the thesis may say:
+
+- **Combined result.** With the synthetic wells included, the ranking is stable:
+  ρ ≥ 0.89 under every single-weight shift and 0.905 under equal weights.
+  Part of that is because the 18 synthetic wells span a wide range of scores
+  and are easy to separate.
+- **Real wells alone.** The ordering is stable under 5-point shifts (ρ ≥ 0.94)
+  but not under every 10-point shift: geometry +10 gives 0.74, economics −10
+  gives 0.86, integrity −10 gives 0.91, and equal weights give 0.71. The top
+  four real wells score only 37.3 to 43.2, so small shifts reorder them. Report
+  the real-well ranking as **indicative**; the robust result is the band (Low
+  priority), not the order within it.
+- **Weights that do not matter for real wells.** Shifting the thermal, demand,
+  network or regulatory weight leaves the real-well order essentially unchanged
+  (ρ ≥ 0.998). The regulatory weight moves scores but never ranks (ρ = 1.0 in
+  every shift): it is close to a constant across the inventory at present.
+- **Band changes concentrate at the Low / Do-not-pursue boundary (score ≈ 25).**
+  Of 183 band changes in the combined run, 144 are Low → Do not pursue; of 126
+  in the real-only run, 101 are.
+- **High-priority wells (both synthetic, labelled).** Wealden Capture Test 4
+  stays High in every scenario. Cornwall Geothermal Trial 1 drops to Medium when
+  the thermal weight falls by 10 points or the economics weight rises by 10.
+- **Real wells near the Medium line.** REMPSTONE 4Z crosses to Medium in 13 of
+  the 31 scenarios and SALTFLEETBY 7X in 3. Say "within one band of Medium under
+  weight stress", not "Medium".
 
 ## 4. Wording that must match the app
 

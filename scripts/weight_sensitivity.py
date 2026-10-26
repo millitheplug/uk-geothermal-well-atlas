@@ -4,7 +4,7 @@ Re-runs the UNMODIFIED pipeline for every well that has a temperature record,
 then recomputes each well's composite score under perturbed weight vectors and
 asks:
 
-  1. Does the ranking move?   (Spearman rho + pairwise order flips)
+  1. Does the ranking move?   (Spearman rho with tie-averaged ranks + pairwise order flips)
   2. Does a well's band move? (re-banded with the engine's own recommend())
   3. How far does any score move? (max/mean absolute delta)
 
@@ -14,7 +14,7 @@ component score is the engine's own output, and the recomputed baseline is
 asserted against the engine's stored feasibility score to 1e-6.
 
 Usage:
-    python scripts/weight_sensitivity.py [--db path/to/dev.db]
+    python scripts/weight_sensitivity.py [--db path/to/dev.db] [--real-only]
 """
 
 from __future__ import annotations
@@ -36,6 +36,11 @@ def main() -> None:
         "--db",
         default=str(REPO / "dev.db"),
         help="database to copy and assess (default: dev.db at the repo root)",
+    )
+    parser.add_argument(
+        "--real-only",
+        action="store_true",
+        help="test only the real (NSTA) wells, leaving out the synthetic demo wells",
     )
     args = parser.parse_args()
 
@@ -87,26 +92,43 @@ def main() -> None:
         return recommendation.value
 
     def spearman(xs: list[float], ys: list[float]) -> float:
+        """Spearman rank correlation: Pearson correlation of average ranks.
+
+        Tied scores get the mean of the ranks they span, so ties (common here:
+        many wells share a component score) do not distort the result the way
+        the 1 - 6*sum(d^2)/(n*(n^2-1)) shortcut does.
+        """
+
         def ranks(vals: list[float]) -> list[float]:
             order = sorted(range(len(vals)), key=lambda i: vals[i])
             r = [0.0] * len(vals)
-            for position, idx in enumerate(order):
-                r[idx] = position + 1
+            i = 0
+            while i < len(order):
+                j = i
+                while j + 1 < len(order) and vals[order[j + 1]] == vals[order[i]]:
+                    j += 1
+                mean_rank = (i + j) / 2 + 1
+                for k in range(i, j + 1):
+                    r[order[k]] = mean_rank
+                i = j + 1
             return r
 
         rx, ry = ranks(xs), ranks(ys)
         n = len(xs)
-        d2 = sum((a - b) ** 2 for a, b in zip(rx, ry))
-        return 1 - 6 * d2 / (n * (n * n - 1))
+        mx, my = sum(rx) / n, sum(ry) / n
+        sxx = sum((a - mx) ** 2 for a in rx)
+        syy = sum((b - my) ** 2 for b in ry)
+        if sxx == 0 or syy == 0:
+            return 1.0 if rx == ry else float("nan")
+        sxy = sum((a - mx) * (b - my) for a, b in zip(rx, ry))
+        return sxy / (sxx * syy) ** 0.5
 
     # ---- run the engine once per well ------------------------------------
     db = SessionLocal()
-    wells = (
-        db.query(Well)
-        .filter(Well.temperature_c.isnot(None))
-        .order_by(Well.well_id)
-        .all()
-    )
+    query = db.query(Well).filter(Well.temperature_c.isnot(None))
+    if args.real_only:
+        query = query.filter(~Well.source.like("mock_%"))
+    wells = query.order_by(Well.well_id).all()
     records = []
     for well in wells:
         inputs, _ = svc.build_well_inputs(db, well)
