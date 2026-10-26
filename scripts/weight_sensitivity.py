@@ -4,7 +4,7 @@ Re-runs the UNMODIFIED pipeline for every well that has a temperature record,
 then recomputes each well's composite score under perturbed weight vectors and
 asks:
 
-  1. Does the ranking move?   (Spearman rho + pairwise order flips)
+  1. Does the ranking move?   (Spearman rho, mid-ranks for ties, + flips)
   2. Does a well's band move? (re-banded with the engine's own recommend())
   3. How far does any score move? (max/mean absolute delta)
 
@@ -88,15 +88,27 @@ def main() -> None:
 
     def spearman(xs: list[float], ys: list[float]) -> float:
         def ranks(vals: list[float]) -> list[float]:
+            # Mid-ranks: tied values share the average of the positions they
+            # span, which Spearman's rho requires when scores tie.
             order = sorted(range(len(vals)), key=lambda i: vals[i])
             r = [0.0] * len(vals)
-            for position, idx in enumerate(order):
-                r[idx] = position + 1
+            i = 0
+            while i < len(order):
+                j = i
+                while (
+                    j + 1 < len(order)
+                    and vals[order[j + 1]] == vals[order[i]]
+                ):
+                    j += 1
+                average = (i + j) / 2 + 1
+                for k in range(i, j + 1):
+                    r[order[k]] = average
+                i = j + 1
             return r
 
         rx, ry = ranks(xs), ranks(ys)
         n = len(xs)
-        d2 = sum((a - b) ** 2 for a, b in zip(rx, ry))
+        d2 = sum((a - b) ** 2 for a, b in zip(rx, ry, strict=False))
         return 1 - 6 * d2 / (n * (n * n - 1))
 
     # ---- run the engine once per well ------------------------------------
@@ -147,14 +159,16 @@ def main() -> None:
 
     baseline_scores = [r["baseline_score"] for r in records]
     baseline_bands = [r["baseline_band"] for r in records]
+    well_id_is_mock = {r["well_id"]: r["is_mock"] for r in records}
 
     header = (
-        f"{'scenario':<34} {'rho':>7} {'flips':>6} {'band chg':>8} "
+        f"{'scenario':<34} {'rho':>7} {'rho real':>8} {'flips':>6} {'band chg':>8} "
         f"{'max |d|':>8} {'mean |d|':>8}"
     )
     print(header)
     print("-" * len(header))
 
+    real_idx = [i for i, r in enumerate(records) if not r["is_mock"]]
     changes: list[tuple[str, str, str, str]] = []
     for name, weights in scenarios.items():
         scores, bands = [], []
@@ -163,28 +177,40 @@ def main() -> None:
             scores.append(s)
             bands.append(rec["baseline_band"] if name == "baseline" else band_for(s, rec))
         rho = spearman(baseline_scores, scores)
+        rho_real = spearman(
+            [baseline_scores[i] for i in real_idx], [scores[i] for i in real_idx]
+        )
         flips = sum(
             1
             for i in range(len(scores))
             for j in range(i + 1, len(scores))
             if (baseline_scores[i] - baseline_scores[j]) * (scores[i] - scores[j]) < 0
         )
-        deltas = [abs(a - b) for a, b in zip(scores, baseline_scores)]
+        deltas = [abs(a - b) for a, b in zip(scores, baseline_scores, strict=False)]
         changed = [
-            (rec, ob, nb) for rec, ob, nb in zip(records, baseline_bands, bands) if ob != nb
+            (rec, ob, nb)
+            for rec, ob, nb in zip(records, baseline_bands, bands, strict=False)
+            if ob != nb
         ]
         print(
-            f"{name:<34} {rho:>7.4f} {flips:>6} {len(changed):>8} "
+            f"{name:<34} {rho:>7.4f} {rho_real:>8.4f} {flips:>6} {len(changed):>8} "
             f"{max(deltas):>8.2f} {sum(deltas) / len(deltas):>8.2f}"
         )
         for rec, ob, nb in changed:
             changes.append((name, f"{rec['well_id']} {rec['name']}", ob, nb))
 
-    print("\nBand changes (every scenario, every well):")
+    print(
+        f"\n(rho = Spearman rank correlation over all {len(records)} temperature "
+        f"wells; rho real = the same computed on the {len(real_idx)} real NSTA "
+        "wells only)"
+    )
+
+    print("\nBand changes (every scenario, every well; [synthetic] tagged):")
     if not changes:
         print("  none -- no well changes band under any +/-5 or +/-10 point shift")
     for name, well, ob, nb in changes:
-        print(f"  {name:<30} {well:<40} {ob} -> {nb}")
+        tag = "  [synthetic]" if well_id_is_mock.get(well.split(" ", 1)[0]) else ""
+        print(f"  {name:<30} {well:<40} {ob} -> {nb}{tag}")
 
     print("\nBaseline picture (engine output, unchanged):")
     real = sum(1 for r in records if not r["is_mock"])
