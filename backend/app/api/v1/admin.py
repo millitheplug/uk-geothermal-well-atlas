@@ -59,6 +59,10 @@ def health(db: DbSession) -> HealthResponse:
 
     if not settings.ai_enabled:
         llm = "disabled"
+    elif settings.ai_provider == "mock":
+        llm = "mock"
+    elif settings.mimo_api_key and settings.ai_provider in ("auto", "mimo"):
+        llm = "mimo"
     elif settings.llm_available:
         llm = "anthropic"
     else:

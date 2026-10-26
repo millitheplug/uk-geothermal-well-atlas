@@ -1,11 +1,16 @@
 ﻿"""LLM provider abstraction with a deterministic mock fallback.
 
-Two implementations of one interface:
+Three implementations of one interface:
 
 ``AnthropicProvider``
     Calls Claude and forces a JSON schema via tool use. The schema is the
     contract; if the model returns something that does not validate, that is an
     error, not something to paper over.
+
+``MimoProvider``
+    Calls Xiaomi MiMo through its OpenAI-compatible chat completions API.
+    Offers the schema as a ``submit`` function tool and parses either the tool
+    call or plain JSON content; validation is the same contract as above.
 
 ``MockProvider``
     Returns schema-valid structured output derived deterministically from the
@@ -23,6 +28,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
+import httpx
 from pydantic import BaseModel, ValidationError
 
 from app.core.config import settings
@@ -156,6 +162,125 @@ class AnthropicProvider(LLMProvider):
                 )
 
         raise LLMError("model returned no tool_use block despite a forced tool choice")
+
+
+class MimoProvider(LLMProvider):
+    """Xiaomi MiMo via the OpenAI-compatible chat completions API.
+
+    Unlike Anthropic, MiMo does not support forced tool choice, so the schema
+    is delivered two ways at once: as a ``submit`` function tool the model is
+    asked to call, and as an explicit "return only this JSON" instruction with
+    the schema inlined. Whichever arrives first wins; either way the payload
+    goes through the same Pydantic validation and one retry as every other
+    provider - never through ad-hoc parsing.
+
+    ``thinking`` is disabled on purpose: it defaults to enabled on MiMo v2.6,
+    which would silently override temperature to 1.0. The platform pins
+    temperature to 0.0 so two runs of the same assessment produce the same
+    text; that guarantee does not survive a provider-side override.
+    """
+
+    name = "mimo"
+
+    def __init__(self, client: httpx.Client | None = None) -> None:
+        if not settings.mimo_api_key:
+            raise LLMError("MIMO_API_KEY is not configured")
+        self._client = client or httpx.Client(timeout=120.0)
+        self._model = settings.mimo_model
+        self._url = f"{settings.mimo_base_url.rstrip('/')}/chat/completions"
+
+    def complete(
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: type[BaseModel],
+        max_tokens: int | None = None,
+    ) -> LLMResponse:
+        schema_json = json.dumps(schema.model_json_schema())
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "messages": [
+                {"role": "system", "content": system},
+                {
+                    "role": "user",
+                    "content": (
+                        f"{user}\n\nRespond with a single JSON object that validates "
+                        f"against this JSON Schema for {schema.__name__}:\n"
+                        f"{schema_json}\nReturn only the JSON - no prose, no "
+                        "markdown fences."
+                    ),
+                },
+            ],
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "submit",
+                        "description": (
+                            f"Submit the structured result as {schema.__name__}."
+                        ),
+                        "parameters": schema.model_json_schema(),
+                    },
+                }
+            ],
+            "max_completion_tokens": max_tokens or settings.ai_max_tokens,
+            "temperature": settings.ai_temperature,
+            "stream": False,
+            "thinking": {"type": "disabled"},
+        }
+
+        try:
+            response = self._client.post(
+                self._url,
+                headers={
+                    "api-key": settings.mimo_api_key or "",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+        except httpx.HTTPError as exc:
+            raise LLMError(f"mimo request failed: {exc}") from exc
+
+        if response.status_code != 200:
+            raise LLMError(
+                f"mimo returned HTTP {response.status_code}: {response.text[:200]}"
+            )
+
+        data = response.json()
+        try:
+            choice = data["choices"][0]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMError("mimo response contained no choices") from exc
+
+        finish_reason = choice.get("finish_reason")
+        if finish_reason == "length":
+            raise LLMError(
+                "response hit the token limit before completing the schema; raise "
+                "AI_MAX_TOKENS or reduce the requested detail"
+            )
+
+        message = choice.get("message") or {}
+        text: str | None = None
+        for call in message.get("tool_calls") or []:
+            function = call.get("function") or {}
+            if function.get("name") == "submit":
+                text = function.get("arguments")
+                break
+        if text is None:
+            text = (message.get("content") or "").strip()
+            if text.startswith("```"):  # tolerate fenced JSON as content
+                text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+
+        usage = data.get("usage") or {}
+        return LLMResponse(
+            text=text,
+            model=data.get("model", self._model),
+            provider=self.name,
+            input_tokens=usage.get("prompt_tokens") or 0,
+            output_tokens=usage.get("completion_tokens") or 0,
+            stop_reason=finish_reason,
+        )
 
 
 class MockProvider(LLMProvider):
@@ -1168,14 +1293,26 @@ _MOCK_BUILDERS: dict[str, Any] = {
 def get_llm_provider(prefer_mock: bool = False) -> LLMProvider:
     """Resolve the provider to use.
 
-    Falls back to the deterministic mock when no API key is configured or when
-    the caller explicitly asks for it. Never raises for a missing key: the
-    platform must remain usable without one.
+    ``AI_PROVIDER`` selects: ``auto`` (default) tries MiMo then Anthropic and
+    falls back to the deterministic mock; ``mimo``/``anthropic`` pin one
+    provider; ``mock`` forces the deterministic provider. Falls back to the
+    mock when no API key is configured or when the caller explicitly asks for
+    it. Never raises for a missing key: the platform must remain usable
+    without one.
     """
-    if prefer_mock or not settings.llm_available:
+    if prefer_mock or settings.ai_provider == "mock":
         return MockProvider()
-    try:
-        return AnthropicProvider()
-    except LLMError:
-        return MockProvider()
+    order: dict[str, list[type[LLMProvider]]] = {
+        "mimo": [MimoProvider],
+        "anthropic": [AnthropicProvider],
+        "auto": [MimoProvider, AnthropicProvider],
+    }
+    for provider_class in order.get(settings.ai_provider, order["auto"]):
+        try:
+            return provider_class()
+        except (LLMError, ImportError):
+            # ImportError: a declared-but-uninstalled SDK must degrade exactly
+            # like a missing key, never take the platform down.
+            continue
+    return MockProvider()
 

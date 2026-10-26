@@ -151,11 +151,14 @@ running.
 
 | Provider | Used when | Behaviour |
 |---|---|---|
-| `AnthropicProvider` | `ANTHROPIC_API_KEY` set | `claude-sonnet-4-5`, temperature 0, structured output validated against the agent's Pydantic schema |
-| `MockProvider` | No key | Deterministic, schema-valid, offline |
+| `MimoProvider` | `AI_PROVIDER` allows it and `MIMO_API_KEY` set | `mimo-v2.6-flash` over the OpenAI-compatible API, temperature 0 with thinking disabled so the server cannot override it; schema offered as a `submit` tool and as inline JSON instructions, then validated like every other provider |
+| `AnthropicProvider` | `AI_PROVIDER` allows it and `ANTHROPIC_API_KEY` set | `claude-sonnet-4-5`, temperature 0, forced tool call validated against the agent's Pydantic schema |
+| `MockProvider` | No usable key, or `AI_PROVIDER=mock` | Deterministic, schema-valid, offline |
 
-Selection is `prefer_mock` overridable per call, which is what lets the test suite
-exercise the real orchestration path without a network.
+Selection is `AI_PROVIDER` (default `auto`: MiMo, then Anthropic, then mock —
+an unavailable provider degrades to the next, never raises), with the
+`prefer_mock` per-call override that lets the test suite exercise the real
+orchestration path without a network.
 
 ### Why the mock provider is safe
 
