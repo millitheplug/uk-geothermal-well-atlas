@@ -96,17 +96,17 @@ Several easily-confused quantities; do not mix them:
    their derivation are in §6.2.
 9. **Risk register** — 17 categories, one rule per category; likelihood and
    impact derived from the well's own data; uncertainty is a documented
-   constant per rule (0.35–0.60). The register stores computed output, not user
-   input. The 17 category names are in §6.3.
+   constant per rule (0.15–0.85). The register stores computed output, not
+   user input. The 17 category names are in §6.3.
 10. **NSTA provenance** — ArcGIS item `d40f9dc58ca84268935582152a5b20f9`,
     snapshot + SHA-256 committed under `data/real/nsta/`, 2,138 records,
     refresh via `python -m scripts.fetch_nsta_onshore_wells`, CI verifies the
     checksum.
 11. **Data-quality score** — a hardcoded 0.0 placeholder in both adapters, not a
     measurement. The UI now says "Not calculated" (PR #16).
-12. **Licence** — NSTA Open User Licence, non-commercial use with attribution
-    ("Contains data from the North Sea Transition Authority."). Read the terms
-    before any public release.
+12. **Licence** — NSTA User Agreement, non-commercial use with attribution
+    ("Contains information provided by the North Sea Transition Authority
+    and/or other third parties."). Read the terms before any public release.
 13. **Parameters** — 17 documented defaults (`parameters.py`), each with
     rationale, source and range; exposed at `GET /admin/parameters`; null means
     "computed from well data at run time". All 17 named in §6.3.
@@ -132,13 +132,14 @@ to 1e-6 for every well, which also demonstrates the 0.05 confidence term is
 live.
 
 The correlation reported is **Spearman's rank correlation ρ**, implemented in
-the script as the standard `1 − 6Σd²/(n³−n)` over ranks. The script reports it
-twice per scenario: over all 37 temperature wells, and over the **19 real NSTA
-wells only** (the 37 include 18 synthetic wells, which the thesis must say).
+the script as the standard `1 − 6Σd²/(n³−n)` over mid-ranks (tied scores share
+the average rank, as Spearman requires). The script reports it twice per
+scenario: over all 37 temperature wells, and over the **19 real NSTA wells
+only** (the 37 include 18 synthetic wells, which the thesis must say).
 
 | Perturbation | ρ (37 wells) | ρ (19 real) | Band changes | Max score move |
 |---|---|---|---|---|
-| Any single weight ±5 points | ≥ 0.95 (most ≥ 0.99) | ≥ 0.93 | ≤ 15, all one step | ≤ 4.0 pts |
+| Any single weight ±5 points | ≥ 0.95 (most ≥ 0.99) | ≥ 0.94 | ≤ 15, all one step | ≤ 4.0 pts |
 | Any single weight ±10 points | ≥ 0.89 | ≥ 0.74 | ≤ 15, all one step | ≤ 8.0 pts |
 | Equal weights (0.125 each) — a deliberately drastic control | 0.895 | 0.665 | 9 | 11.6 pts |
 | Regulatory weight ±5 / ±10 | 1.000 | 1.000 | scores move, ranks do not | ≤ 7.9 pts |
@@ -146,7 +147,7 @@ wells only** (the 37 include 18 synthetic wells, which the thesis must say).
 Conclusions the thesis may draw — stated with the honest caveat:
 
 - Single-weight shifts of ±5 points leave the ranking essentially unchanged on
-  both populations (ρ ≥ 0.93 even on the 19 real wells alone): **the ranking is
+  both populations (ρ ≥ 0.94 even on the 19 real wells alone): **the ranking is
   not an artefact of the particular weights** at the tested perturbation sizes.
 - **Caveat to state explicitly**: the 19 real wells cluster tightly (best 43.2,
   most around 12–15), so *drastic* re-weightings reorder them more than they

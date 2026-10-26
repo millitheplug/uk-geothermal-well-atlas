@@ -4,7 +4,7 @@ Re-runs the UNMODIFIED pipeline for every well that has a temperature record,
 then recomputes each well's composite score under perturbed weight vectors and
 asks:
 
-  1. Does the ranking move?   (Spearman rho + pairwise order flips)
+  1. Does the ranking move?   (Spearman rho, mid-ranks for ties, + flips)
   2. Does a well's band move? (re-banded with the engine's own recommend())
   3. How far does any score move? (max/mean absolute delta)
 
@@ -88,10 +88,22 @@ def main() -> None:
 
     def spearman(xs: list[float], ys: list[float]) -> float:
         def ranks(vals: list[float]) -> list[float]:
+            # Mid-ranks: tied values share the average of the positions they
+            # span, which Spearman's rho requires when scores tie.
             order = sorted(range(len(vals)), key=lambda i: vals[i])
             r = [0.0] * len(vals)
-            for position, idx in enumerate(order):
-                r[idx] = position + 1
+            i = 0
+            while i < len(order):
+                j = i
+                while (
+                    j + 1 < len(order)
+                    and vals[order[j + 1]] == vals[order[i]]
+                ):
+                    j += 1
+                average = (i + j) / 2 + 1
+                for k in range(i, j + 1):
+                    r[order[k]] = average
+                i = j + 1
             return r
 
         rx, ry = ranks(xs), ranks(ys)
